@@ -1,7 +1,9 @@
 package com.sysco.hackathon.aperti.service;
 
 
+import com.google.maps.model.OpeningHours;
 import com.sysco.hackathon.aperti.dto.CustomerDTO;
+import com.sysco.hackathon.aperti.dto.CustomerDetailsDTO;
 import com.sysco.hackathon.aperti.dto.CustomerResponse;
 import com.sysco.hackathon.aperti.util.ApiUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,14 +41,16 @@ public class UserService {
         this.placeService = placeService;
     }
 
-    public List<Object> getCustomersForOpCoGiven(String opCoId) {
+    public List<Object> getCustomersForOpCoGiven(String opCoId, String query) {
         try {
             CustomerResponse result = restTemplate.getForObject(apiUtils.getOpCoCustomerUrl(opCoId), CustomerResponse.class);
             if (result != null) {
                 List<String> customerKeys = result.getData().stream().map(customer -> customer.getOpco() + "-" + customer.getCustomerId()).toList();
-                List<Object> customerInfo = sfdcService.getCustomerInfo(customerKeys);
                 // TODO: merge customer info with place API details
-
+                List<Object> customerInfo = sfdcService.getCustomerInfo(customerKeys);
+//                List<OpeningHours> customerOpeningHours = placeService.getPlaceOpeningHours(query);
+                // TODO: enhance DTO using above two API responses. Return List of CustomerDetailsDTO finally.
+//                CustomerDetailsDTO customerDetails = CustomerDetailsDTO.builder().build();
                 return customerInfo;
             };
             return Collections.emptyList();
