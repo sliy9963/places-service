@@ -19,17 +19,35 @@ public class UserService {
 
     private ApiUtils apiUtils;
 
+    private SfdcService sfdcService;
+
+    private PlaceService placeService;
+
 
     @Autowired
     public void setApiUtils(ApiUtils apiUtils) {
         this.apiUtils = apiUtils;
     }
 
-    public List<CustomerDTO> getCustomersForOpCoGiven(String opCoId) {
+    @Autowired
+    public void setSfdcService(SfdcService sfdcService) {
+        this.sfdcService = sfdcService;
+    }
+
+    @Autowired
+    public void setPlaceService(PlaceService placeService) {
+        this.placeService = placeService;
+    }
+
+    public List<Object> getCustomersForOpCoGiven(String opCoId) {
         try {
             CustomerResponse result = restTemplate.getForObject(apiUtils.getOpCoCustomerUrl(opCoId), CustomerResponse.class);
             if (result != null) {
-                return List.of(result.getData());
+                List<String> customerKeys = result.getData().stream().map(customer -> customer.getOpco() + "-" + customer.getCustomerId()).toList();
+                List<Object> customerInfo = sfdcService.getCustomerInfo(customerKeys);
+                // TODO: merge customer info with place API details
+
+                return customerInfo;
             };
             return Collections.emptyList();
         } catch (Exception e) {
