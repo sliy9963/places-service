@@ -14,8 +14,11 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.sysco.hackathon.aperti.util.Constants.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -51,15 +54,20 @@ public class SfdcService {
     public List<SfdcCustomerDTO> getCustomerInfo(List<String> customerKeys) {
         List<List<String>> chunkedCustomerKeys = apiUtils.chunkList(customerKeys, chunkSize);
         SfdcAuthResponseDTO sfdcAuthResponse = getSfdcAuthResponse();
+        List<List<SfdcCustomerDTO>> chunkRecords = new ArrayList<>();
         String queryUrl;
         if (sfdcAuthResponse != null) {
             queryUrl = sfdcAuthResponse.getInstanceUrl() + SFDC_API_URL_SEGMENT;
-            SfdcCustomerResponseDTO res = null;
             for (List<String> customerKeysChunk : chunkedCustomerKeys) {
                 String query = apiUtils.getQuery(customerKeysChunk);
-                res = executeQuery(queryUrl, query, sfdcAuthResponse.getAccessToken());
+                SfdcCustomerResponseDTO customerData = executeQuery(queryUrl, query, sfdcAuthResponse.getAccessToken());
+                if (customerData != null) {
+                    List<SfdcCustomerDTO> recordsPerChunk = customerData.getRecords();
+                    chunkRecords.add(recordsPerChunk);
+                }
             }
-            if (res != null) return res.getRecords();
+            return chunkRecords.stream().flatMap(List::stream)
+                    .collect(Collectors.toList());
         }
         return Collections.emptyList();
     }
