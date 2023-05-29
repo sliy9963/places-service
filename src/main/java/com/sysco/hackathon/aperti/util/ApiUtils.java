@@ -17,6 +17,9 @@ public class ApiUtils {
     @Value("${application.google.api.key}")
     private String apiKey;
 
+    @Value("${application.customer.service.url}")
+    private String customerServiceUrl;
+
     public GeoApiContext getContext() {
         return new GeoApiContext.Builder()
             .apiKey(apiKey)
@@ -25,5 +28,9 @@ public class ApiUtils {
 
     public String getEncodedText(String text) {
         return URLEncoder.encode(text, StandardCharsets.UTF_8);
+    }
+
+    public String getOpCoCustomerUrl(String opCoId) {
+        return String.format("%s/%s/%s/%s", customerServiceUrl, "opcos", opCoId, "customers?page=0&size=50");
     }
 }
