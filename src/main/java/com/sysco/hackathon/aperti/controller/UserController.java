@@ -25,7 +25,7 @@ public class UserController {
     }
 
     @GetMapping(path = "/customers")
-    public ResponseEntity<List<Object>> getCustomersForOpCo(@RequestParam("opco") String opCoId, @RequestParam("query") String query) {
-        return new ResponseEntity<>(userService.getCustomersForOpCoGiven(opCoId, query), HttpStatus.OK);
+    public ResponseEntity<List<Object>> getCustomersForOpCo(@RequestParam("opco") String opCoId) {
+        return new ResponseEntity<>(userService.getCustomersForOpCoGiven(opCoId), HttpStatus.OK);
     }
 }

@@ -17,7 +17,9 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import static com.sysco.hackathon.aperti.util.Constants.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -46,39 +48,53 @@ public class SfdcService {
     @Value("${application.sfdc.auth.url}")
     private String sfdcAuthUrl;
 
-    @Value("${application.sfdc.query.url}")
-    private String sfdcQueryUrl;
+    @Value("${application.sfdc.query.url.suffix}")
+    private String sfdcQueryUrlSuffix;
 
     @Autowired
     private RestTemplate restTemplate;
 
-    private static final String USER_DATA_QUERY = "SELECT+Account_ID__c,Name,ShippingStreet,ShippingCity,ShippingState,ShippingPostalCode,Location__c+FROM+Account+WHERE+Account_ID__c=";
-
     public List<Object> getCustomerInfo(List<String> customerKeys) {
         List<List<String>> chunkedCustomerKeys = apiUtils.chunkList(customerKeys, chunkSize);
-        SfdcResponseDTO sfdcAuthResponse = getSfdcAuthResponse();
-        // TODO: perform query to SFDC use chunkedCustomerKeys + sfdcQueryUrl + auth
+//        SfdcResponseDTO sfdcAuthResponse = getSfdcAuthResponse();
+        String queryUrl = "";
+//        if (sfdcAuthResponse != null) {
+            queryUrl = "https://sysco--staging.sandbox.my.salesforce.com" + sfdcQueryUrlSuffix + "?q=";
+//        }
+        StringBuilder sfdcQuery = new StringBuilder(USER_DATA_QUERY_FORMAT);
+        for (List<String> customerKeysChunk : chunkedCustomerKeys) {
+            // create query
+            String queryPerChunk = customerKeysChunk.stream()
+                    .map(cKey -> sfdcQuery.append("'").append(cKey).append("'").append(USER_DATA_QUERY_JOIN)).collect(Collectors.joining());
+            System.out.println("QUERY PER CHUNK: " + queryPerChunk);
+            // create one request per chunk
+        }
+        // TODO: perform query to SFDC use chunkedCustomerKeys + instanceUrl + auth
         return Collections.emptyList();
     }
 
-    public SfdcResponseDTO getSfdcAuthResponse() {
+    private SfdcResponseDTO getSfdcAuthResponse() {
         SfdcRequestDTO sfdcAuth = SfdcRequestDTO.builder()
                 .clientId(clientId).clientSecret(clientSecret).password(password).build();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.setAccept(List.of(APPLICATION_JSON));
         MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
-        requestBody.add("client_id", clientId);
-        requestBody.add("client_secret", clientSecret);
-        requestBody.add("response_type", sfdcAuth.getResponseType());
-        requestBody.add("redirect_uri", sfdcAuth.getRedirectUri());
-        requestBody.add("grant_type", sfdcAuth.getGrantType());
-        requestBody.add("username", sfdcAuth.getUsername());
-        requestBody.add("password", password);
+        requestBody.add(CLIENT_ID, clientId);
+        requestBody.add(CLIENT_SECRET, clientSecret);
+        requestBody.add(RESPONSE_TYPE, sfdcAuth.getResponseType());
+        requestBody.add(REDIRECT_URI, sfdcAuth.getRedirectUri());
+        requestBody.add(GRANT_TYPE, sfdcAuth.getGrantType());
+        requestBody.add(USERNAME, sfdcAuth.getUsername());
+        requestBody.add(PASSWORD, password);
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(requestBody, headers);
-        SfdcResponseDTO response = restTemplate
+        return restTemplate
                 .postForObject(sfdcAuthUrl, entity, SfdcResponseDTO.class);
-        return response;
+    }
+
+    private Object executeQuery(String query) {
+        // TODO: implement query to sfdc with rest template
+        return null;
     }
 
 }

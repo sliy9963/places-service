@@ -41,13 +41,14 @@ public class UserService {
         this.placeService = placeService;
     }
 
-    public List<Object> getCustomersForOpCoGiven(String opCoId, String query) {
+    public List<Object> getCustomersForOpCoGiven(String opCoId) {
         try {
             CustomerResponse result = restTemplate.getForObject(apiUtils.getOpCoCustomerUrl(opCoId), CustomerResponse.class);
             if (result != null) {
                 List<String> customerKeys = result.getData().stream().map(customer -> customer.getOpco() + "-" + customer.getCustomerId()).toList();
                 // TODO: merge customer info with place API details
                 List<Object> customerInfo = sfdcService.getCustomerInfo(customerKeys);
+                // TODO: create search text for place API using customer name + address. Pass it as query
 //                List<OpeningHours> customerOpeningHours = placeService.getPlaceOpeningHours(query);
                 // TODO: enhance DTO using above two API responses. Return List of CustomerDetailsDTO finally.
 //                CustomerDetailsDTO customerDetails = CustomerDetailsDTO.builder().build();
