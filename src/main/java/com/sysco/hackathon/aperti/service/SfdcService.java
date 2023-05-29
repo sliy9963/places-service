@@ -1,10 +1,9 @@
 package com.sysco.hackathon.aperti.service;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sysco.hackathon.aperti.dto.CustomerResponse;
+import com.sysco.hackathon.aperti.dto.SfdcCustomerResponseDTO;
 import com.sysco.hackathon.aperti.dto.SfdcRequestDTO;
-import com.sysco.hackathon.aperti.dto.SfdcResponseDTO;
+import com.sysco.hackathon.aperti.dto.SfdcAuthResponseDTO;
 import com.sysco.hackathon.aperti.util.ApiUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,13 +14,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.sysco.hackathon.aperti.util.Constants.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Service
 public class SfdcService {
@@ -56,24 +52,27 @@ public class SfdcService {
 
     public List<Object> getCustomerInfo(List<String> customerKeys) {
         List<List<String>> chunkedCustomerKeys = apiUtils.chunkList(customerKeys, chunkSize);
-//        SfdcResponseDTO sfdcAuthResponse = getSfdcAuthResponse();
+        SfdcAuthResponseDTO sfdcAuthResponse = getSfdcAuthResponse();
         String queryUrl = "";
 //        if (sfdcAuthResponse != null) {
             queryUrl = "https://sysco--staging.sandbox.my.salesforce.com" + sfdcQueryUrlSuffix + "?q=";
 //        }
         StringBuilder sfdcQuery = new StringBuilder(USER_DATA_QUERY_FORMAT);
-        for (List<String> customerKeysChunk : chunkedCustomerKeys) {
-            // create query
-            String queryPerChunk = customerKeysChunk.stream()
-                    .map(cKey -> sfdcQuery.append("'").append(cKey).append("'").append(USER_DATA_QUERY_JOIN)).collect(Collectors.joining());
-            System.out.println("QUERY PER CHUNK: " + queryPerChunk);
-            // create one request per chunk
-        }
+       // [ [067-123], [056-456] ]
+//        for (List<String> customerKeysChunk : chunkedCustomerKeys) {
+//            // create query
+//            String queryPerChunk = customerKeysChunk.stream()
+//                    .map(cKey -> sfdcQuery.append("'").append(cKey).append("'").append(USER_DATA_QUERY_JOIN)).collect(Collectors.joining());
+//            System.out.println("QUERY PER CHUNK: " + queryPerChunk);
+//            // create one request per chunk
+//        }
         // TODO: perform query to SFDC use chunkedCustomerKeys + instanceUrl + auth
+        String queryTest = "SELECT+Account_ID__c,Name,ShippingStreet,ShippingCity,ShippingState,ShippingPostalCode,Location__c+FROM+Account+WHERE+Account_ID__c='056-000026'+OR+Account_ID__c='056-002683'+OR+Account_ID__c='056-008011'+OR+Account_ID__c='056-012021'+OR+Account_ID__c='056-020552'+OR+Account_ID__c='056-022954'";
+        Object res = executeQuery(queryUrl, queryTest, sfdcAuthResponse.getAccessToken());
         return Collections.emptyList();
     }
 
-    private SfdcResponseDTO getSfdcAuthResponse() {
+    private SfdcAuthResponseDTO getSfdcAuthResponse() {
         SfdcRequestDTO sfdcAuth = SfdcRequestDTO.builder()
                 .clientId(clientId).clientSecret(clientSecret).password(password).build();
         HttpHeaders headers = new HttpHeaders();
@@ -89,12 +88,19 @@ public class SfdcService {
         requestBody.add(PASSWORD, password);
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(requestBody, headers);
         return restTemplate
-                .postForObject(sfdcAuthUrl, entity, SfdcResponseDTO.class);
+                .postForObject(sfdcAuthUrl, entity, SfdcAuthResponseDTO.class);
     }
 
-    private Object executeQuery(String query) {
-        // TODO: implement query to sfdc with rest template
-        return null;
+    private SfdcCustomerResponseDTO executeQuery(String url, String query, String token) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(APPLICATION_JSON));
+        headers.setBearerAuth(token);
+        String queryUrl = String.format("%s%s", url, query);
+        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+        ResponseEntity<SfdcCustomerResponseDTO> response = restTemplate.exchange(
+                queryUrl, HttpMethod.GET, requestEntity, SfdcCustomerResponseDTO.class);
+        return response.getBody();
     }
 
 }

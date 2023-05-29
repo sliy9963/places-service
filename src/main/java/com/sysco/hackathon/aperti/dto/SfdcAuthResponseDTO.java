@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class SfdcResponseDTO {
+public class SfdcAuthResponseDTO {
     @JsonProperty("access_token")
     String accessToken;
     @JsonProperty("instance_url")
