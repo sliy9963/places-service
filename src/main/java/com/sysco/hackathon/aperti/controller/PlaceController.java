@@ -1,6 +1,7 @@
 package com.sysco.hackathon.aperti.controller;
 
 import com.google.maps.model.OpeningHours;
+import com.google.maps.model.PlaceDetails;
 import com.google.maps.model.PlacesSearchResult;
 import com.sysco.hackathon.aperti.service.PlaceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,11 @@ public class PlaceController {
     @GetMapping(path = "/places")
     public ResponseEntity<List<PlacesSearchResult>> getPlaceData(@RequestParam("search") String placeSearch) {
         return new ResponseEntity<>(placeService.getPlaceIds(placeSearch), HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/placeDetails")
+    public ResponseEntity<List<PlaceDetails>> getPlaceDetails(@RequestParam("search") String placeSearch) {
+        return new ResponseEntity<>(placeService.getPlaceDetails(placeSearch), HttpStatus.OK);
     }
 
     @GetMapping(path = "/places/openingHours")

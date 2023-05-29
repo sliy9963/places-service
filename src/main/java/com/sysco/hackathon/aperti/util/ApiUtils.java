@@ -11,8 +11,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.sysco.hackathon.aperti.util.Constants.USER_DATA_QUERY_FORMAT;
+import static com.sysco.hackathon.aperti.util.Constants.USER_DATA_QUERY_JOIN;
+
 @Component
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
 public class ApiUtils {
 
 
@@ -24,7 +27,7 @@ public class ApiUtils {
 
     public GeoApiContext getContext() {
         return new GeoApiContext.Builder()
-            .apiKey(apiKey)
+                .apiKey(apiKey)
                 .build();
     }
 
@@ -36,13 +39,27 @@ public class ApiUtils {
         return String.format("%s/%s/%s/%s", customerServiceUrl, "opcos", opCoId, "customers?page=0&size=50");
     }
 
-    public <T> List<List<T>> chunkList(List<T> list, final int chunkSize) {
+    public <T> List<List<T>> chunkList(List<T> list, int chunkSize) {
         List<List<T>> parts = new ArrayList<>();
-        final int n = list.size();
+        int n = list.size();
         for (int i = 0; i < n; i += chunkSize) {
             parts.add(new ArrayList<>(list.subList(i, Math.min(n, i + chunkSize))));
         }
         return parts;
+    }
+
+    public String getQuery(List<String> customerKeysChunk) {
+        StringBuilder sfdcQuery = new StringBuilder(USER_DATA_QUERY_FORMAT);
+        StringBuilder q = new StringBuilder();
+        for (int i = 0; i < customerKeysChunk.size(); i++) {
+            if (i == customerKeysChunk.size() - 1) {
+                q.append("'").append(customerKeysChunk.get(i)).append("'");
+            } else {
+                q.append("'").append(customerKeysChunk.get(i)).append("'").append(USER_DATA_QUERY_JOIN);
+            }
+        }
+        sfdcQuery.append(q);
+        return sfdcQuery.toString();
     }
 
 }

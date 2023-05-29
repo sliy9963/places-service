@@ -2,14 +2,16 @@ package com.sysco.hackathon.aperti.service;
 
 
 import com.google.maps.model.OpeningHours;
-import com.sysco.hackathon.aperti.dto.CustomerDTO;
-import com.sysco.hackathon.aperti.dto.CustomerDetailsDTO;
-import com.sysco.hackathon.aperti.dto.CustomerResponse;
+import com.sysco.hackathon.aperti.dto.customer.CustomerResponseDTO;
+import com.sysco.hackathon.aperti.dto.response.CustomerDetailsDTO;
+import com.sysco.hackathon.aperti.dto.response.WindowDTO;
+import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 import com.sysco.hackathon.aperti.util.ApiUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,20 +43,37 @@ public class UserService {
         this.placeService = placeService;
     }
 
-    public List<Object> getCustomersForOpCoGiven(String opCoId) {
+    public List<CustomerDetailsDTO> getCustomersForOpCoGiven(String opCoId) {
         try {
-            CustomerResponse result = restTemplate.getForObject(apiUtils.getOpCoCustomerUrl(opCoId), CustomerResponse.class);
+            CustomerResponseDTO result = restTemplate.getForObject(apiUtils.getOpCoCustomerUrl(opCoId), CustomerResponseDTO.class);
+            List<CustomerDetailsDTO> customers = new ArrayList<>();
             if (result != null) {
                 List<String> customerKeys = result.getData().stream().map(customer -> customer.getOpco() + "-" + customer.getCustomerId()).toList();
-                // TODO: merge customer info with place API details
-                List<Object> customerInfo = sfdcService.getCustomerInfo(customerKeys);
-                // TODO: create search text for place API using customer name + address. Pass it as query
-//                List<OpeningHours> customerOpeningHours = placeService.getPlaceOpeningHours(query);
-                // TODO: enhance DTO using above two API responses. Return List of CustomerDetailsDTO finally.
-//                CustomerDetailsDTO customerDetails = CustomerDetailsDTO.builder().build();
-                return customerInfo;
-            };
-            return Collections.emptyList();
+                List<SfdcCustomerDTO> customerInfoList = sfdcService.getCustomerInfo(customerKeys);
+                for (SfdcCustomerDTO customerInfo : customerInfoList) {
+                    String query = customerInfo.getName().toLowerCase();
+                    List<OpeningHours> customerOpeningHours = placeService.getPlaceOpeningHours(query);
+                    List<WindowDTO> windows = new ArrayList<>();
+//                    for (OpeningHours openingHours : customerOpeningHours) {
+//                        OpeningHours.Period[] periods = openingHours.periods;
+//                        for (OpeningHours.Period period : periods) {
+                            WindowDTO window = WindowDTO.builder()
+                                    .day(null)
+                                    .window(null)
+                                    .googleBusinessHours(null)
+                                    .build();
+                            windows.add(window);
+//                        }
+//                    }
+                    CustomerDetailsDTO customerDetails = CustomerDetailsDTO.builder()
+                            .customerId(customerInfo.getAccount_ID__c().split("-")[1])
+                            .opcoId(opCoId)
+                            .shopName(customerInfo.getName())
+                            .windows(windows).build();
+                    customers.add(customerDetails);
+                }
+            }
+            return customers;
         } catch (Exception e) {
             throw new RuntimeException("Failed while fetching user data: " + e.getMessage());
         }

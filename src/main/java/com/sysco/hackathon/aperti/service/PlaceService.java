@@ -40,6 +40,21 @@ public class PlaceService {
         return places;
     }
 
+    public List<PlaceDetails> getPlaceDetails(String placeSearch) {
+        List<PlaceDetails> places = new ArrayList<>();
+        try {
+            List<PlacesSearchResult> placeList = getPlaceIds(placeSearch);
+            if (placeList.size() == 0) return Collections.emptyList();
+            for (PlacesSearchResult place : placeList) {
+                PlaceDetails placeDetails = PlacesApi.placeDetails(apiContext, place.placeId).await();
+                places.add(placeDetails);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed while fetching place opening hours: " + e.getMessage());
+        }
+        return places;
+    }
+
     public List<OpeningHours> getPlaceOpeningHoursById(String placeSearch) {
         List<OpeningHours> openingHoursList = new ArrayList<>();
         try {

@@ -1,9 +1,10 @@
 package com.sysco.hackathon.aperti.service;
 
 
-import com.sysco.hackathon.aperti.dto.SfdcCustomerResponseDTO;
-import com.sysco.hackathon.aperti.dto.SfdcRequestDTO;
-import com.sysco.hackathon.aperti.dto.SfdcAuthResponseDTO;
+import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
+import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerResponseDTO;
+import com.sysco.hackathon.aperti.dto.sfdc.SfdcRequestDTO;
+import com.sysco.hackathon.aperti.dto.sfdc.SfdcAuthResponseDTO;
 import com.sysco.hackathon.aperti.util.ApiUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +30,9 @@ public class SfdcService {
         this.apiUtils = apiUtils;
     }
 
+    @Autowired
+    private RestTemplate restTemplate;
+
     @Value("${application.customer.records.chunk.size}")
     private Integer chunkSize;
 
@@ -44,31 +48,19 @@ public class SfdcService {
     @Value("${application.sfdc.auth.url}")
     private String sfdcAuthUrl;
 
-    @Value("${application.sfdc.query.url.suffix}")
-    private String sfdcQueryUrlSuffix;
-
-    @Autowired
-    private RestTemplate restTemplate;
-
-    public List<Object> getCustomerInfo(List<String> customerKeys) {
+    public List<SfdcCustomerDTO> getCustomerInfo(List<String> customerKeys) {
         List<List<String>> chunkedCustomerKeys = apiUtils.chunkList(customerKeys, chunkSize);
         SfdcAuthResponseDTO sfdcAuthResponse = getSfdcAuthResponse();
-        String queryUrl = "";
-//        if (sfdcAuthResponse != null) {
-            queryUrl = "https://sysco--staging.sandbox.my.salesforce.com" + sfdcQueryUrlSuffix + "?q=";
-//        }
-        StringBuilder sfdcQuery = new StringBuilder(USER_DATA_QUERY_FORMAT);
-       // [ [067-123], [056-456] ]
-//        for (List<String> customerKeysChunk : chunkedCustomerKeys) {
-//            // create query
-//            String queryPerChunk = customerKeysChunk.stream()
-//                    .map(cKey -> sfdcQuery.append("'").append(cKey).append("'").append(USER_DATA_QUERY_JOIN)).collect(Collectors.joining());
-//            System.out.println("QUERY PER CHUNK: " + queryPerChunk);
-//            // create one request per chunk
-//        }
-        // TODO: perform query to SFDC use chunkedCustomerKeys + instanceUrl + auth
-        String queryTest = "SELECT+Account_ID__c,Name,ShippingStreet,ShippingCity,ShippingState,ShippingPostalCode,Location__c+FROM+Account+WHERE+Account_ID__c='056-000026'+OR+Account_ID__c='056-002683'+OR+Account_ID__c='056-008011'+OR+Account_ID__c='056-012021'+OR+Account_ID__c='056-020552'+OR+Account_ID__c='056-022954'";
-        Object res = executeQuery(queryUrl, queryTest, sfdcAuthResponse.getAccessToken());
+        String queryUrl;
+        if (sfdcAuthResponse != null) {
+            queryUrl = sfdcAuthResponse.getInstanceUrl() + SFDC_API_URL_SEGMENT;
+            SfdcCustomerResponseDTO res = null;
+            for (List<String> customerKeysChunk : chunkedCustomerKeys) {
+                String query = apiUtils.getQuery(customerKeysChunk);
+                res = executeQuery(queryUrl, query, sfdcAuthResponse.getAccessToken());
+            }
+            if (res != null) return res.getRecords();
+        }
         return Collections.emptyList();
     }
 

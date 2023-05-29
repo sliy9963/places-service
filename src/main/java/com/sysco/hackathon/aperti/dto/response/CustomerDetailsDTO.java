@@ -1,4 +1,4 @@
-package com.sysco.hackathon.aperti.dto;
+package com.sysco.hackathon.aperti.dto.response;
 
 import lombok.Builder;
 import lombok.Data;

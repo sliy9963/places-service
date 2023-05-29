@@ -1,4 +1,4 @@
-package com.sysco.hackathon.aperti.dto;
+package com.sysco.hackathon.aperti.dto.customer;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class CustomerResponse {
+public class CustomerResponseDTO {
     List<CustomerDTO> data;
     Object meta;
     Object _links;

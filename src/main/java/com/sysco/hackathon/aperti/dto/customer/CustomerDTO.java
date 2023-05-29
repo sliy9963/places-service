@@ -1,4 +1,4 @@
-package com.sysco.hackathon.aperti.dto;
+package com.sysco.hackathon.aperti.dto.customer;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

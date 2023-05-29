@@ -11,5 +11,6 @@ public class Constants {
     public static final String PASSWORD = "password";
     public static final String USER_DATA_QUERY_FORMAT = "SELECT+Account_ID__c,Name,ShippingStreet,ShippingCity,ShippingState,ShippingPostalCode,Location__c+FROM+Account+WHERE+Account_ID__c=";
     public static final String USER_DATA_QUERY_JOIN = "+OR+Account_ID__c=";
+    public static final String SFDC_API_URL_SEGMENT = "/services/data/v39.0/query?q=";
 
 }
