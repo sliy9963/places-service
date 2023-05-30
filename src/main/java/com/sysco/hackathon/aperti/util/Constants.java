@@ -1,7 +1,8 @@
 package com.sysco.hackathon.aperti.util;
 
-import java.util.Arrays;
-import java.util.List;
+import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
+
+import java.util.*;
 
 public class Constants {
 
@@ -37,4 +38,7 @@ public class Constants {
             return value;
         }
     }
+
+    public static final Map<String, List<SfdcCustomerDTO>> customerMap = new HashMap<>();
+
 }

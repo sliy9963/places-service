@@ -1,14 +1,18 @@
 package com.sysco.hackathon.aperti;
 
+import com.sysco.hackathon.aperti.util.ApiUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import static com.sysco.hackathon.aperti.util.Constants.customerMap;
+
 @SpringBootApplication
-public class PlacesServiceApplication {
+public class PlacesServiceApplication implements CommandLineRunner {
 
 	public static void main(String[] args) {
 		SpringApplication.run(PlacesServiceApplication.class, args);
@@ -24,4 +28,11 @@ public class PlacesServiceApplication {
 		};
 	}
 
+	@Override
+	public void run(String... args) {
+		ApiUtils apiUtils = new ApiUtils();
+		customerMap.put("043", apiUtils.readCustomerFile("sfdcCustomers043.json"));
+		customerMap.put("056", apiUtils.readCustomerFile("sfdcCustomers056.json"));
+		customerMap.put("067", apiUtils.readCustomerFile("sfdcCustomers067.json"));
+	}
 }

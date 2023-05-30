@@ -94,16 +94,27 @@ public class ApiUtils {
         return customerInfo.getName().toLowerCase() + " " + customerInfo.getShippingStreet().toLowerCase();
     }
 
-    public Map<String, OpCoDetailsDTO> readOpCoDataFile() throws URISyntaxException {
+    public Map<String, OpCoDetailsDTO> readOpCoDataFile() {
         Map<String, OpCoDetailsDTO> map;
         try {
-            Resource resource = new ClassPathResource("opcoDetails.json");
+            Resource resource = new ClassPathResource("mockOpcoDetails.json");
             map = new ObjectMapper()
                     .readValue(resource.getInputStream(), new TypeReference<>() {});
         } catch (Exception e) {
             throw new RuntimeException("Failed to read opco JSON: " + e);
         }
         return map;
+    }
+
+    public List<SfdcCustomerDTO> readCustomerFile(String fileName) {
+        List<SfdcCustomerDTO> data;
+        try {
+            Resource resource = new ClassPathResource(fileName);
+            data = new ObjectMapper().readValue(resource.getInputStream(), new TypeReference<>() {});
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read opco JSON: " + e);
+        }
+        return data;
     }
 
 

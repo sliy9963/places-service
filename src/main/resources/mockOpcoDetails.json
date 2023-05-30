@@ -1,0 +1,29 @@
+{
+  "067":{
+    "opcoId":"067",
+    "timezone":"America/Chicago",
+    "name":"Houston",
+    "address":{
+      "addressLine1":"10710 Greens Crossing Blvd.",
+      "addressLine2":"Houston, TX 77038"
+    }
+  },
+  "043":{
+    "opcoId":"043",
+    "timezone":"US/Mountain",
+    "name":"Montana",
+    "address":{
+      "addressLine1":"1509 Monad Road",
+      "addressLine2":"Billings, MT 59107"
+    }
+  },
+  "056":{
+    "opcoId":"056",
+    "timezone":"America/New_York",
+    "name":"Boston",
+    "address":{
+      "addressLine1":"99 Spring Street",
+      "addressLine2":"Plympton, MA 02367"
+    }
+  }
+}
