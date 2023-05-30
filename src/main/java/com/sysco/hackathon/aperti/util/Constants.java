@@ -2,6 +2,8 @@ package com.sysco.hackathon.aperti.util;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Constants {
 
@@ -36,5 +38,10 @@ public class Constants {
         public String getValue() {
             return value;
         }
+
+        public static final String URL_KEY = "url";
+        public static final String TOKEN_KEY = "token";
+
+        public static final Map<String, String> tokens = new ConcurrentHashMap<>();
     }
 }

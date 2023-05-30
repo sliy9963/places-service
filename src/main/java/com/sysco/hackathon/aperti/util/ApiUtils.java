@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.GeoApiContext;
 import com.sysco.hackathon.aperti.dto.OpCoDetailsDTO;
+import com.sysco.hackathon.aperti.dto.ScheduledDeliveryDTO;
 import com.sysco.hackathon.aperti.dto.customer.CustomerResponseDTO;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 import lombok.AccessLevel;
@@ -94,7 +95,7 @@ public class ApiUtils {
         return customerInfo.getName().toLowerCase() + " " + customerInfo.getShippingStreet().toLowerCase();
     }
 
-    public Map<String, OpCoDetailsDTO> readOpCoDataFile() throws URISyntaxException {
+    public Map<String, OpCoDetailsDTO> readOpCoDataFile() {
         Map<String, OpCoDetailsDTO> map;
         try {
             Resource resource = new ClassPathResource("opcoDetails.json");
@@ -106,5 +107,16 @@ public class ApiUtils {
         return map;
     }
 
+    public Map<String, List<ScheduledDeliveryDTO>> readScheduledDataFile() {
+        Map<String, List<ScheduledDeliveryDTO>> map;
+        try {
+            Resource resource = new ClassPathResource("scheduledData.json");
+            map = new ObjectMapper()
+                    .readValue(resource.getInputStream(), new TypeReference<>() {});
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read scheduled data JSON: " + e);
+        }
+        return map;
+    }
 
 }

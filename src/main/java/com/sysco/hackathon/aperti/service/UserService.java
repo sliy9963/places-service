@@ -4,6 +4,7 @@ package com.sysco.hackathon.aperti.service;
 import com.google.maps.model.OpeningHours;
 import com.google.maps.model.PlaceDetails;
 import com.sysco.hackathon.aperti.controller.RouteController;
+import com.sysco.hackathon.aperti.dto.ScheduledDeliveryDTO;
 import com.sysco.hackathon.aperti.dto.customer.CustomerResponseDTO;
 import com.sysco.hackathon.aperti.dto.response.CustomerDetailsDTO;
 import com.sysco.hackathon.aperti.dto.response.WindowDTO;
@@ -17,10 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.IntStream;
 
 @Service
@@ -65,6 +63,17 @@ public class UserService {
                 List<String> customerKeys = apiUtils.getCustomerKeys(customerServiceResponse);
                 List<SfdcCustomerDTO> customerInfoList = sfdcService.getCustomerInfo(customerKeys);
                 for (SfdcCustomerDTO customerInfo : customerInfoList) {
+
+
+                    Map<String, List<ScheduledDeliveryDTO>> scheduledDataMap = apiUtils.readScheduledDataFile();
+                    List<ScheduledDeliveryDTO> scheduledDataPerOpCo = scheduledDataMap.get(opCoId);
+                    ScheduledDeliveryDTO scheduledCustomerData = scheduledDataPerOpCo.stream()
+                            .filter(x -> x.getCustomer().equals(customerInfo.getAccount_ID__c().split("-")[1])).findFirst().orElse(null);
+                    if (scheduledCustomerData != null) {
+                        scheduledCustomerData.getDeliveryWindow().getStoreOpenTimeByDay();
+                        scheduledCustomerData.getDeliveryWindow().getStoreCloseTimeByDay();
+                    }
+
                     String query = apiUtils.getPlaceApiQuery(customerInfo);
                     CustomerDetailsDTO customerDetails;
                     List<PlaceDetails> customerDataFromGoogle = placeService.getPlaceDetails(query);
