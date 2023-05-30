@@ -17,6 +17,7 @@ public class PlaceController {
 
     private PlaceService placeService;
 
+
     @Autowired
     public void setPlacesService(PlaceService placeService) {
         this.placeService = placeService;

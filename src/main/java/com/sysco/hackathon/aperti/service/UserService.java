@@ -3,6 +3,7 @@ package com.sysco.hackathon.aperti.service;
 
 import com.google.maps.model.OpeningHours;
 import com.google.maps.model.PlaceDetails;
+import com.sysco.hackathon.aperti.controller.RouteController;
 import com.sysco.hackathon.aperti.dto.customer.CustomerResponseDTO;
 import com.sysco.hackathon.aperti.dto.response.CustomerDetailsDTO;
 import com.sysco.hackathon.aperti.dto.response.WindowDTO;
@@ -10,6 +11,8 @@ import com.sysco.hackathon.aperti.dto.response.WindowItemDTO;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 import com.sysco.hackathon.aperti.util.ApiUtils;
 import com.sysco.hackathon.aperti.util.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -17,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 @Service
@@ -30,6 +34,8 @@ public class UserService {
     private SfdcService sfdcService;
 
     private PlaceService placeService;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
 
     @Autowired
@@ -51,6 +57,7 @@ public class UserService {
     // TODO: create window object based on schedule data
     // TODO: change opening hours propagation based on scheduled data
     public List<CustomerDetailsDTO> getCustomersForOpCoGiven(String opCoId) {
+        LOGGER.info("Request received [UserService]: OpCo ID: {}, Request Id: {}", opCoId, UUID.randomUUID());
         try {
             CustomerResponseDTO customerServiceResponse = restTemplate.getForObject(apiUtils.getOpCoCustomerUrl(opCoId), CustomerResponseDTO.class);
             List<CustomerDetailsDTO> customers = new ArrayList<>();

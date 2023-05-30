@@ -6,6 +6,8 @@ import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerResponseDTO;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcRequestDTO;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcAuthResponseDTO;
 import com.sysco.hackathon.aperti.util.ApiUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -18,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.sysco.hackathon.aperti.util.Constants.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -51,8 +52,12 @@ public class SfdcService {
     @Value("${application.sfdc.auth.url}")
     private String sfdcAuthUrl;
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SfdcService.class);
+
+
     public List<SfdcCustomerDTO> getCustomerInfo(List<String> customerKeys) {
         List<List<String>> chunkedCustomerKeys = apiUtils.chunkList(customerKeys, chunkSize);
+        LOGGER.info("Fetching records for customer keys [SfdcService]: {}", chunkedCustomerKeys);
         SfdcAuthResponseDTO sfdcAuthResponse = getSfdcAuthResponse();
         List<List<SfdcCustomerDTO>> chunkRecords = new ArrayList<>();
         String queryUrl;
@@ -60,6 +65,7 @@ public class SfdcService {
             queryUrl = sfdcAuthResponse.getInstanceUrl() + SFDC_API_URL_SEGMENT;
             for (List<String> customerKeysChunk : chunkedCustomerKeys) {
                 String query = apiUtils.getQuery(customerKeysChunk);
+                LOGGER.info("Fetching records query from SFDC [SfdcService]: {}", query);
                 SfdcCustomerResponseDTO customerData = executeQuery(queryUrl, query, sfdcAuthResponse.getAccessToken());
                 if (customerData != null) {
                     List<SfdcCustomerDTO> recordsPerChunk = customerData.getRecords();
@@ -92,6 +98,7 @@ public class SfdcService {
     }
 
     private SfdcCustomerResponseDTO executeQuery(String url, String query, String token) {
+        LOGGER.info("Executing SFDC  query [SfdcService]: URL: {}, Query: {}", url, query);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(List.of(APPLICATION_JSON));
