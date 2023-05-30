@@ -56,31 +56,16 @@ public class UserService {
                     List<PlaceDetails> customerDataFromGoogle = placeService.getPlaceDetails(query);
                     if (customerDataFromGoogle.size() > 0) {
                         PlaceDetails placeDetails;
-                        OpeningHours openingHours;
-                        OpeningHours.Period[] periods = new OpeningHours.Period[0];
                         placeDetails = customerDataFromGoogle.get(0);
-                        openingHours = placeDetails.openingHours != null ? placeDetails.openingHours : placeDetails.secondaryOpeningHours;
-                        periods = openingHours.periods;
+                        OpeningHours openingHours = placeDetails.openingHours != null ? placeDetails.openingHours : placeDetails.secondaryOpeningHours;
+                        OpeningHours.Period[] periods = openingHours.periods;
                         List<WindowDTO> windows = new ArrayList<>();
                         for (OpeningHours.Period period : periods) {
-                            WindowItemDTO googleBusinessHours = WindowItemDTO.builder()
-                                    .from(String.valueOf(period.open.time))
-                                    .to(String.valueOf(period.close.time))
-                                    .build();
-                            WindowDTO window = WindowDTO.builder()
-                                    .day(null)
-                                    .window(null)
-                                    .googleBusinessHours(googleBusinessHours)
-                                    .build();
+                            WindowItemDTO googleBusinessHours = generateGoogleWindows(period);
+                            WindowDTO window = generateCompleteWindow(period, googleBusinessHours);
                             windows.add(window);
                         }
-                        String customer = customerInfo.getAccount_ID__c() != null ? customerInfo.getAccount_ID__c().split("-")[1] : "N/A";
-                        CustomerDetailsDTO customerDetails = CustomerDetailsDTO.builder()
-                                .customerId(customer)
-                                .opcoId(opCoId)
-                                .shopName(customerInfo.getName())
-                                .windows(windows)
-                                .build();
+                        CustomerDetailsDTO customerDetails = generateCustomerInfo(customerInfo, opCoId, windows);
                         customers.add(customerDetails);
                     }
                 }
@@ -89,6 +74,33 @@ public class UserService {
         } catch (Exception e) {
             throw new RuntimeException("Failed while fetching user data: " + e.getMessage());
         }
+    }
+
+    private WindowItemDTO generateGoogleWindows(OpeningHours.Period period) {
+        return WindowItemDTO.builder()
+            .from(String.valueOf(period.open.time))
+            .to(String.valueOf(period.close.time))
+        .build();
+    }
+
+    private WindowDTO generateCompleteWindow(OpeningHours.Period period, WindowItemDTO googleBusinessHours) {
+        return WindowDTO.builder()
+            .day(period.open.day.getName())
+            .window(null)
+            .googleBusinessHours(googleBusinessHours)
+            .exception(apiUtils.generateExceptionLevel())
+            .reasonCode(apiUtils.generateReasonCode())
+        .build();
+    }
+
+    private CustomerDetailsDTO generateCustomerInfo(SfdcCustomerDTO customerInfo, String opCoId, List<WindowDTO> windows) {
+        String customerId = customerInfo.getAccount_ID__c() != null ? customerInfo.getAccount_ID__c().split("-")[1] : "N/A";
+        return CustomerDetailsDTO.builder()
+            .customerId(customerId)
+            .opcoId(opCoId)
+            .shopName(customerInfo.getName())
+            .windows(windows)
+        .build();
     }
 
 }

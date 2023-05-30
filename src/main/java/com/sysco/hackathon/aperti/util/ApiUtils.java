@@ -10,9 +10,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
-import static com.sysco.hackathon.aperti.util.Constants.USER_DATA_QUERY_FORMAT;
-import static com.sysco.hackathon.aperti.util.Constants.USER_DATA_QUERY_JOIN;
+import static com.sysco.hackathon.aperti.util.Constants.*;
 
 @Component
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
@@ -60,6 +60,21 @@ public class ApiUtils {
         }
         sfdcQuery.append(q);
         return sfdcQuery.toString();
+    }
+
+    public String generateExceptionLevel() {
+        return getRandomNumberFromList(exceptionsList);
+    }
+
+    public String generateReasonCode() {
+        return getRandomNumberFromList(reasonCodesList);
+    }
+
+    private String getRandomNumberFromList(List<String> list) {
+        Random random = new Random();
+        return String.valueOf(random.ints(0, list.size())
+                .findFirst()
+                .orElse(0));
     }
 
 }

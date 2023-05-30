@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class WindowDTO {
-    Integer day;
+    String day;
     WindowItemDTO window;
     WindowItemDTO googleBusinessHours;
     String reasonCode;
