@@ -7,6 +7,8 @@ import lombok.Data;
 @Builder
 public class WindowDTO {
     Integer day;
-    Object window;
-    Object googleBusinessHours;
+    WindowItemDTO window;
+    WindowItemDTO googleBusinessHours;
+    String reasonCode;
+    String exception;
 }

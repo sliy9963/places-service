@@ -2,9 +2,11 @@ package com.sysco.hackathon.aperti.service;
 
 
 import com.google.maps.model.OpeningHours;
+import com.google.maps.model.PlaceDetails;
 import com.sysco.hackathon.aperti.dto.customer.CustomerResponseDTO;
 import com.sysco.hackathon.aperti.dto.response.CustomerDetailsDTO;
 import com.sysco.hackathon.aperti.dto.response.WindowDTO;
+import com.sysco.hackathon.aperti.dto.response.WindowItemDTO;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 import com.sysco.hackathon.aperti.util.ApiUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -52,25 +53,36 @@ public class UserService {
                 List<SfdcCustomerDTO> customerInfoList = sfdcService.getCustomerInfo(customerKeys);
                 for (SfdcCustomerDTO customerInfo : customerInfoList) {
                     String query = customerInfo.getName().toLowerCase();
-                    List<OpeningHours> customerOpeningHours = placeService.getPlaceOpeningHours(query);
-                    List<WindowDTO> windows = new ArrayList<>();
-//                    for (OpeningHours openingHours : customerOpeningHours) {
-//                        OpeningHours.Period[] periods = openingHours.periods;
-//                        for (OpeningHours.Period period : periods) {
+                    List<PlaceDetails> customerDataFromGoogle = placeService.getPlaceDetails(query);
+                    if (customerDataFromGoogle.size() > 0) {
+                        PlaceDetails placeDetails;
+                        OpeningHours openingHours;
+                        OpeningHours.Period[] periods = new OpeningHours.Period[0];
+                        placeDetails = customerDataFromGoogle.get(0);
+                        openingHours = placeDetails.openingHours != null ? placeDetails.openingHours : placeDetails.secondaryOpeningHours;
+                        periods = openingHours.periods;
+                        List<WindowDTO> windows = new ArrayList<>();
+                        for (OpeningHours.Period period : periods) {
+                            WindowItemDTO googleBusinessHours = WindowItemDTO.builder()
+                                    .from(String.valueOf(period.open.time))
+                                    .to(String.valueOf(period.close.time))
+                                    .build();
                             WindowDTO window = WindowDTO.builder()
                                     .day(null)
                                     .window(null)
-                                    .googleBusinessHours(null)
+                                    .googleBusinessHours(googleBusinessHours)
                                     .build();
                             windows.add(window);
-//                        }
-//                    }
-                    CustomerDetailsDTO customerDetails = CustomerDetailsDTO.builder()
-                            .customerId(customerInfo.getAccount_ID__c().split("-")[1])
-                            .opcoId(opCoId)
-                            .shopName(customerInfo.getName())
-                            .windows(windows).build();
-                    customers.add(customerDetails);
+                        }
+                        String customer = customerInfo.getAccount_ID__c() != null ? customerInfo.getAccount_ID__c().split("-")[1] : "N/A";
+                        CustomerDetailsDTO customerDetails = CustomerDetailsDTO.builder()
+                                .customerId(customer)
+                                .opcoId(opCoId)
+                                .shopName(customerInfo.getName())
+                                .windows(windows)
+                                .build();
+                        customers.add(customerDetails);
+                    }
                 }
             }
             return customers;
