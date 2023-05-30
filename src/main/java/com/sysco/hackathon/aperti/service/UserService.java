@@ -58,10 +58,10 @@ public class UserService {
                 List<SfdcCustomerDTO> customerInfoList = sfdcService.getCustomerInfo(customerKeys);
                 for (SfdcCustomerDTO customerInfo : customerInfoList) {
                     String query = customerInfo.getName().toLowerCase();
+                    CustomerDetailsDTO customerDetails;
                     List<PlaceDetails> customerDataFromGoogle = placeService.getPlaceDetails(query);
                     if (customerDataFromGoogle.size() > 0) {
-                        PlaceDetails placeDetails;
-                        placeDetails = customerDataFromGoogle.get(0);
+                        PlaceDetails placeDetails = customerDataFromGoogle.get(0);
                         OpeningHours openingHours = placeDetails.openingHours != null ? placeDetails.openingHours : placeDetails.secondaryOpeningHours;
                         List<WindowDTO> windows = new ArrayList<>();
                         if (openingHours != null) {
@@ -72,14 +72,13 @@ public class UserService {
                                 windows.add(window);
                             }
                         } else {
-                            IntStream.range(0, 7).forEach(i -> {
-                                WindowDTO window = generateCompleteWindow(null, null, i);
-                                windows.add(window);
-                            });
+                            windows = getDefaultWindows();
                         }
-                        CustomerDetailsDTO customerDetails = generateCustomerInfo(customerInfo, opCoId, windows);
-                        customers.add(customerDetails);
+                        customerDetails = generateCustomerInfo(customerInfo, opCoId, windows);
+                    } else {
+                        customerDetails = generateCustomerInfo(customerInfo, opCoId, getDefaultWindows());
                     }
+                    customers.add(customerDetails);
                 }
             }
             return customers;
@@ -119,6 +118,15 @@ public class UserService {
             .shopName(customerInfo.getName())
             .windows(windows)
         .build();
+    }
+
+    private List<WindowDTO> getDefaultWindows() {
+        List<WindowDTO> windows = new ArrayList<>();
+        IntStream.range(0, 7).forEach(i -> {
+            WindowDTO window = generateCompleteWindow(null, null, i);
+            windows.add(window);
+        });
+        return windows;
     }
 
 }
