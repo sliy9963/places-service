@@ -2,6 +2,7 @@ package com.sysco.hackathon.aperti.util;
 
 import com.google.maps.GeoApiContext;
 import com.sysco.hackathon.aperti.dto.customer.CustomerResponseDTO;
+import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -82,5 +83,8 @@ public class ApiUtils {
         return result.getData().stream().map(customer -> customer.getOpco() + "-" + customer.getCustomerId()).toList();
     }
 
+    public String getPlaceApiQuery(SfdcCustomerDTO customerInfo) {
+        return customerInfo.getName().toLowerCase() + " " + customerInfo.getShippingStreet().toLowerCase();
+    }
 
 }

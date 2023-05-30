@@ -49,7 +49,6 @@ public class UserService {
     }
 
     // TODO: change days logic based on schedule data
-    // TODO: change query
     // TODO: create window object based on schedule data
     // TODO: change opening hours propagation based on scheduled data
     public List<CustomerDetailsDTO> getCustomersForOpCoGiven(String opCoId) {
@@ -60,7 +59,7 @@ public class UserService {
                 List<String> customerKeys = apiUtils.getCustomerKeys(customerServiceResponse);
                 List<SfdcCustomerDTO> customerInfoList = sfdcService.getCustomerInfo(customerKeys);
                 for (SfdcCustomerDTO customerInfo : customerInfoList) {
-                    String query = customerInfo.getName().toLowerCase() + " " + customerInfo.getShippingStreet();
+                    String query = apiUtils.getPlaceApiQuery(customerInfo);
                     CustomerDetailsDTO customerDetails;
                     List<PlaceDetails> customerDataFromGoogle = placeService.getPlaceDetails(query);
                     if (customerDataFromGoogle.size() > 0) {
