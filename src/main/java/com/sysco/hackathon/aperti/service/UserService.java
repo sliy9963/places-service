@@ -92,19 +92,12 @@ public class UserService {
 
     private WindowItemDTO generateGoogleWindows(OpeningHours.Period period) {
         WindowItemDTO window = WindowItemDTO.builder().build();
-        if (period == null) {
-            window.setFrom(null);
-            window.setFrom(null);
-        } else {
+        if (period != null) {
             if (period.open != null) {
                 window.setFrom(String.valueOf(period.open.time));
-            } else {
-                window.setFrom(null);
             }
             if (period.close != null) {
                 window.setTo(String.valueOf(period.close.time));
-            } else {
-                window.setTo(null);
             }
         }
         return window;

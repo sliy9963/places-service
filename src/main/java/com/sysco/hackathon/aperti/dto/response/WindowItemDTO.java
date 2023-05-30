@@ -6,6 +6,8 @@ import lombok.Data;
 @Data
 @Builder
 public class WindowItemDTO {
-    String from;
-    String to;
+    @Builder.Default
+    String from = null;
+    @Builder.Default
+    String to = null;
 }
