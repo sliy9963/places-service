@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -47,6 +49,7 @@ public class UserService {
     }
 
     // TODO: change days logic based on schedule data
+    // TODO: change query
     // TODO: create window object based on schedule data
     // TODO: change opening hours propagation based on scheduled data
     public List<CustomerDetailsDTO> getCustomersForOpCoGiven(String opCoId) {
@@ -57,7 +60,7 @@ public class UserService {
                 List<String> customerKeys = apiUtils.getCustomerKeys(customerServiceResponse);
                 List<SfdcCustomerDTO> customerInfoList = sfdcService.getCustomerInfo(customerKeys);
                 for (SfdcCustomerDTO customerInfo : customerInfoList) {
-                    String query = customerInfo.getName().toLowerCase();
+                    String query = customerInfo.getName().toLowerCase() + " " + customerInfo.getShippingStreet();
                     CustomerDetailsDTO customerDetails;
                     List<PlaceDetails> customerDataFromGoogle = placeService.getPlaceDetails(query);
                     if (customerDataFromGoogle.size() > 0) {
@@ -74,6 +77,7 @@ public class UserService {
                         } else {
                             windows = getDefaultWindows();
                         }
+                        windows.sort(Comparator.comparingInt((WindowDTO w) -> Integer.parseInt(w.getDay())));
                         customerDetails = generateCustomerInfo(customerInfo, opCoId, windows);
                     } else {
                         customerDetails = generateCustomerInfo(customerInfo, opCoId, getDefaultWindows());
@@ -88,10 +92,23 @@ public class UserService {
     }
 
     private WindowItemDTO generateGoogleWindows(OpeningHours.Period period) {
-        return WindowItemDTO.builder()
-            .from(String.valueOf(period.open.time))
-            .to(String.valueOf(period.close.time))
-        .build();
+        WindowItemDTO window = WindowItemDTO.builder().build();
+        if (period == null) {
+            window.setFrom(null);
+            window.setFrom(null);
+        } else {
+            if (period.open != null) {
+                window.setFrom(String.valueOf(period.open.time));
+            } else {
+                window.setFrom(null);
+            }
+            if (period.close != null) {
+                window.setTo(String.valueOf(period.close.time));
+            } else {
+                window.setTo(null);
+            }
+        }
+        return window;
     }
 
     private WindowDTO generateCompleteWindow(OpeningHours.Period period, WindowItemDTO googleBusinessHours, int index) {
