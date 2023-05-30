@@ -1,6 +1,7 @@
 package com.sysco.hackathon.aperti.util;
 
 import com.google.maps.GeoApiContext;
+import com.sysco.hackathon.aperti.dto.customer.CustomerResponseDTO;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,18 +64,23 @@ public class ApiUtils {
     }
 
     public String generateExceptionLevel() {
-        return getRandomNumberFromList(exceptionsList);
+        return exceptionsList.get(getRandomNumberFromList(exceptionsList));
     }
 
     public String generateReasonCode() {
-        return getRandomNumberFromList(reasonCodesList);
+        return reasonCodesList.get(getRandomNumberFromList(reasonCodesList));
     }
 
-    private String getRandomNumberFromList(List<String> list) {
+    private Integer getRandomNumberFromList(List<String> list) {
         Random random = new Random();
-        return String.valueOf(random.ints(0, list.size())
+        return random.ints(0, list.size())
                 .findFirst()
-                .orElse(0));
+                .orElse(0);
     }
+
+    public List<String> getCustomerKeys(CustomerResponseDTO result) {
+        return result.getData().stream().map(customer -> customer.getOpco() + "-" + customer.getCustomerId()).toList();
+    }
+
 
 }

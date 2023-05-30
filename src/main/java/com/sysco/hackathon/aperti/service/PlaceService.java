@@ -49,10 +49,10 @@ public class PlaceService {
                 PlaceDetails placeDetails = PlacesApi.placeDetails(apiContext, place.placeId).await();
                 places.add(placeDetails);
             }
+            return places;
         } catch (Exception e) {
-            throw new RuntimeException("Failed while fetching place opening hours: " + e.getMessage());
+            return new ArrayList<>();
         }
-        return places;
     }
 
     public List<OpeningHours> getPlaceOpeningHoursById(String placeSearch) {

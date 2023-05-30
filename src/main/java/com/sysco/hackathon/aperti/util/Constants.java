@@ -17,4 +17,24 @@ public class Constants {
     public static final String SFDC_API_URL_SEGMENT = "/services/data/v39.0/query?q=";
     public static List<String> exceptionsList = Arrays.asList("level_1", "level_2", "level_3", "level_4");
     public static List<String> reasonCodesList = Arrays.asList("no_change", "update_window", "always_ignore", "contact_customer");
+
+    public enum DayNumberOfWeek {
+        Sunday("6"),
+        Monday("0"),
+        Tuesday("1"),
+        Wednesday("2"),
+        Thursday("3"),
+        Friday("4"),
+        Saturday("5");
+
+        private DayNumberOfWeek(String value) {
+            this.value = value;
+        }
+
+        private final String value;
+
+        public String getValue() {
+            return value;
+        }
+    }
 }

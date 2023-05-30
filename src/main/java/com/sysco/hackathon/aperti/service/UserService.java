@@ -9,12 +9,14 @@ import com.sysco.hackathon.aperti.dto.response.WindowDTO;
 import com.sysco.hackathon.aperti.dto.response.WindowItemDTO;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 import com.sysco.hackathon.aperti.util.ApiUtils;
+import com.sysco.hackathon.aperti.util.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Service
 public class UserService {
@@ -44,12 +46,15 @@ public class UserService {
         this.placeService = placeService;
     }
 
+    // TODO: change days logic based on schedule data
+    // TODO: create window object based on schedule data
+    // TODO: change opening hours propagation based on scheduled data
     public List<CustomerDetailsDTO> getCustomersForOpCoGiven(String opCoId) {
         try {
-            CustomerResponseDTO result = restTemplate.getForObject(apiUtils.getOpCoCustomerUrl(opCoId), CustomerResponseDTO.class);
+            CustomerResponseDTO customerServiceResponse = restTemplate.getForObject(apiUtils.getOpCoCustomerUrl(opCoId), CustomerResponseDTO.class);
             List<CustomerDetailsDTO> customers = new ArrayList<>();
-            if (result != null) {
-                List<String> customerKeys = result.getData().stream().map(customer -> customer.getOpco() + "-" + customer.getCustomerId()).toList();
+            if (customerServiceResponse != null) {
+                List<String> customerKeys = apiUtils.getCustomerKeys(customerServiceResponse);
                 List<SfdcCustomerDTO> customerInfoList = sfdcService.getCustomerInfo(customerKeys);
                 for (SfdcCustomerDTO customerInfo : customerInfoList) {
                     String query = customerInfo.getName().toLowerCase();
@@ -58,12 +63,19 @@ public class UserService {
                         PlaceDetails placeDetails;
                         placeDetails = customerDataFromGoogle.get(0);
                         OpeningHours openingHours = placeDetails.openingHours != null ? placeDetails.openingHours : placeDetails.secondaryOpeningHours;
-                        OpeningHours.Period[] periods = openingHours.periods;
                         List<WindowDTO> windows = new ArrayList<>();
-                        for (OpeningHours.Period period : periods) {
-                            WindowItemDTO googleBusinessHours = generateGoogleWindows(period);
-                            WindowDTO window = generateCompleteWindow(period, googleBusinessHours);
-                            windows.add(window);
+                        if (openingHours != null) {
+                            OpeningHours.Period[] periods = openingHours.periods;
+                            for (OpeningHours.Period period : periods) {
+                                WindowItemDTO googleBusinessHours = generateGoogleWindows(period);
+                                WindowDTO window = generateCompleteWindow(period, googleBusinessHours, 0);
+                                windows.add(window);
+                            }
+                        } else {
+                            IntStream.range(0, 7).forEach(i -> {
+                                WindowDTO window = generateCompleteWindow(null, null, i);
+                                windows.add(window);
+                            });
                         }
                         CustomerDetailsDTO customerDetails = generateCustomerInfo(customerInfo, opCoId, windows);
                         customers.add(customerDetails);
@@ -83,14 +95,20 @@ public class UserService {
         .build();
     }
 
-    private WindowDTO generateCompleteWindow(OpeningHours.Period period, WindowItemDTO googleBusinessHours) {
-        return WindowDTO.builder()
-            .day(period.open.day.getName())
-            .window(null)
-            .googleBusinessHours(googleBusinessHours)
-            .exception(apiUtils.generateExceptionLevel())
-            .reasonCode(apiUtils.generateReasonCode())
-        .build();
+    private WindowDTO generateCompleteWindow(OpeningHours.Period period, WindowItemDTO googleBusinessHours, int index) {
+        WindowItemDTO emptyWindow = WindowItemDTO.builder().build();
+        WindowDTO window = WindowDTO.builder()
+                .window(null)
+                .exception(apiUtils.generateExceptionLevel())
+                .reasonCode(apiUtils.generateReasonCode()).build();
+        if (googleBusinessHours == null && period == null) {
+            window.setGoogleBusinessHours(emptyWindow);
+            window.setDay(String.valueOf(index));
+        } else {
+            window.setGoogleBusinessHours(googleBusinessHours);
+            window.setDay(Constants.DayNumberOfWeek.valueOf(period.open.day.getName()).getValue());
+        }
+        return window;
     }
 
     private CustomerDetailsDTO generateCustomerInfo(SfdcCustomerDTO customerInfo, String opCoId, List<WindowDTO> windows) {
