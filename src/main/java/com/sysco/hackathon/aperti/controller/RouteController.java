@@ -1,0 +1,31 @@
+package com.sysco.hackathon.aperti.controller;
+
+import com.sysco.hackathon.aperti.dto.OpCoDTO;
+import com.sysco.hackathon.aperti.service.RouteService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@CrossOrigin(origins = "http://localhost:4200")
+@RequestMapping("/api/v1")
+public class RouteController {
+
+    private RouteService routeService;
+
+    @Autowired
+    public void setRouteService(RouteService routeService) {
+        this.routeService = routeService;
+    }
+
+    @GetMapping(path = "/opcos")
+    public ResponseEntity<List<OpCoDTO>> getOpCoList() {
+        return new ResponseEntity<>(routeService.getOpCos(), HttpStatus.OK);
+    }
+}

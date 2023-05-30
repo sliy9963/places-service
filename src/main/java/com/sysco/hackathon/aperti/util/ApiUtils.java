@@ -1,17 +1,24 @@
 package com.sysco.hackathon.aperti.util;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.GeoApiContext;
+import com.sysco.hackathon.aperti.dto.OpCoDetailsDTO;
 import com.sysco.hackathon.aperti.dto.customer.CustomerResponseDTO;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import static com.sysco.hackathon.aperti.util.Constants.*;
@@ -86,5 +93,18 @@ public class ApiUtils {
     public String getPlaceApiQuery(SfdcCustomerDTO customerInfo) {
         return customerInfo.getName().toLowerCase() + " " + customerInfo.getShippingStreet().toLowerCase();
     }
+
+    public Map<String, OpCoDetailsDTO> readOpCoDataFile() throws URISyntaxException {
+        Map<String, OpCoDetailsDTO> map;
+        try {
+            Resource resource = new ClassPathResource("opcoDetails.json");
+            map = new ObjectMapper()
+                    .readValue(resource.getInputStream(), new TypeReference<>() {});
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read opco JSON: " + e);
+        }
+        return map;
+    }
+
 
 }
