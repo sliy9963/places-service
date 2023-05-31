@@ -1,6 +1,8 @@
 package com.sysco.hackathon.aperti.controller;
 
+import com.sysco.hackathon.aperti.dto.request.WindowUpdateDTO;
 import com.sysco.hackathon.aperti.dto.response.CustomerDetailsDTO;
+import com.sysco.hackathon.aperti.dto.response.WindowUpdateResponse;
 import com.sysco.hackathon.aperti.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static com.sysco.hackathon.aperti.util.Constants.placesMap;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -27,6 +31,13 @@ public class UserController {
     @GetMapping(path = "/customers")
     public ResponseEntity<List<CustomerDetailsDTO>> getCustomersForOpCo(@RequestParam("opco") String opCoId) {
         LOGGER.info("[UserController] Request received to fetch customer info for OpCo ID: {}", opCoId);
+        LOGGER.info("[UserController] Places Cache size => {}", placesMap.size());
         return new ResponseEntity<>(userService.getCustomersForOpCoGiven(opCoId), HttpStatus.OK);
     }
+
+    @PostMapping(path = "/customers")
+    public ResponseEntity<WindowUpdateResponse> getPlacesByOpCoAndCustomerId(@RequestBody WindowUpdateDTO windowUpdate) {
+        return new ResponseEntity<>(userService.upsertWindowActions(windowUpdate), HttpStatus.OK);
+    }
+
 }

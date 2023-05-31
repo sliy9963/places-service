@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.GeoApiContext;
 import com.sysco.hackathon.aperti.dto.OpCoDetailsDTO;
 import com.sysco.hackathon.aperti.dto.customer.CustomerResponseDTO;
+import com.sysco.hackathon.aperti.dto.response.CustomerDetailsDTO;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -117,6 +118,10 @@ public class ApiUtils {
             throw new RuntimeException("Failed to read opco JSON: " + e);
         }
         return data;
+    }
+
+    public String keyGenerator(String opcoId, String customerId) {
+        return opcoId + "-" + customerId;
     }
 
 }

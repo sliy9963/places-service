@@ -1,8 +1,12 @@
 package com.sysco.hackathon.aperti.util;
 
+import com.google.maps.model.PlaceDetails;
 import com.sysco.hackathon.aperti.dto.OpCoDetailsDTO;
+import com.sysco.hackathon.aperti.dto.response.WindowItemDTO;
+import com.sysco.hackathon.aperti.dto.schedule.OpeningHoursDTO;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +25,7 @@ public class Constants {
     public static final String USER_DATA_QUERY_JOIN = "+OR+Account_ID__c=";
     public static final String SFDC_API_URL_SEGMENT = "/services/data/v39.0/query?q=";
     public static List<String> exceptionsList = Arrays.asList("level_1", "level_2", "level_3", "level_4");
-    public static List<String> reasonCodesList = Arrays.asList("no_change", "update_window", "always_ignore", "contact_customer");
+    public static List<String> reasonCodesList = Arrays.asList("no_change", "update_window", "always_ignore", "contact_customer", "suggested_window");
 
     public enum DayNumberOfWeek {
         Sunday("6"),
@@ -48,5 +52,10 @@ public class Constants {
 
     public static final Map<String, List<SfdcCustomerDTO>> customerMap = new ConcurrentHashMap<>();
     public static final Map<String, OpCoDetailsDTO> opcoMap = new ConcurrentHashMap<>();
+
+    public static final Map<String, PlaceDetails> placesMap = new ConcurrentHashMap<>();
+
+    public static final List<WindowItemDTO> windowsList = new ArrayList<>();
+
 
 }

@@ -1,20 +1,19 @@
 package com.sysco.hackathon.aperti;
 
-import com.sysco.hackathon.aperti.dto.schedule.ScheduledDeliveryDTO;
-import com.sysco.hackathon.aperti.util.ApiUtils;
+import com.sysco.hackathon.aperti.dto.response.WindowItemDTO;
+import com.sysco.hackathon.aperti.service.ScheduledMockService;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Map;
-
 
 class PlaceServiceApplicationTests {
 
 	@Test
 	void contextLoads() {
-		ApiUtils apiUtils = new ApiUtils();
-		Map<String, List<ScheduledDeliveryDTO>> data = apiUtils.readScheduleFile("mockScheduledData.json");
-		System.out.println(data);
+		ScheduledMockService scheduledMockService = new ScheduledMockService();
+		List<WindowItemDTO> mockSchedules = scheduledMockService.getMockSchedules();
+		mockSchedules.forEach(System.out::println);
+		System.out.println(mockSchedules.size());
 	}
 
 }

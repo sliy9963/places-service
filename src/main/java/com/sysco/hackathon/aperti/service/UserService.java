@@ -3,10 +3,14 @@ package com.sysco.hackathon.aperti.service;
 
 import com.google.maps.model.OpeningHours;
 import com.google.maps.model.PlaceDetails;
+import com.sysco.hackathon.aperti.dao.CustomerDetailsDAO;
+import com.sysco.hackathon.aperti.dto.request.WindowUpdateDTO;
 import com.sysco.hackathon.aperti.dto.response.CustomerDetailsDTO;
 import com.sysco.hackathon.aperti.dto.response.WindowDTO;
 import com.sysco.hackathon.aperti.dto.response.WindowItemDTO;
+import com.sysco.hackathon.aperti.dto.response.WindowUpdateResponse;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
+import com.sysco.hackathon.aperti.repository.impl.PlaceRepositoryImpl;
 import com.sysco.hackathon.aperti.util.ApiUtils;
 import com.sysco.hackathon.aperti.util.Constants;
 import org.slf4j.Logger;
@@ -56,6 +60,11 @@ public class UserService {
     @Autowired
     private ExecutorService taskExecutor;
 
+    @Autowired
+    private PlaceRepositoryImpl placeRepository;
+
+    private static final Random RANDOM = new Random();
+
     public List<CustomerDetailsDTO> getCustomersForOpCoGiven(String opCoId) {
         LOGGER.info("[UserService] Request received to fetch customer data for OpCo ID: {}", opCoId);
         try {
@@ -81,15 +90,31 @@ public class UserService {
         }
     }
 
+    private PlaceDetails getPlaceDetails(String key, String query) {
+        PlaceDetails placeDetails = null;
+        if (placesMap.containsKey(key)) {
+            placeDetails = placesMap.get(key);
+            LOGGER.info("Fetching data from cache");
+        } else {
+            List<PlaceDetails> customerDataFromGoogle = placeService.getPlaceDetails(query);
+            if (customerDataFromGoogle.size() > 0) {
+                placeDetails = customerDataFromGoogle.get(0);
+                placesMap.put(key, placeDetails);
+            }
+            LOGGER.info("Fetching data from API");
+        }
+        System.out.println(placesMap);
+        return placeDetails;
+    }
+
     private CustomerDetailsDTO generateCustomerWithGoogleWindows(String query, SfdcCustomerDTO customerInfo, String opCoId) {
         CustomerDetailsDTO customerDetails;
-        List<PlaceDetails> customerDataFromGoogle = placeService.getPlaceDetails(query);
-        if (customerDataFromGoogle.size() > 0) {
-            PlaceDetails placeDetails = customerDataFromGoogle.get(0);
+        PlaceDetails placeDetails = getPlaceDetails(customerInfo.getAccount_ID__c(), query);
+        if (placeDetails != null) {
             LOGGER.info("[UserService] Customer Found ===> Query: {} | Name: {} | Address: {}",
                     query, placeDetails.name, placeDetails.formattedAddress);
             OpeningHours openingHours = placeDetails.openingHours != null ? placeDetails.openingHours : placeDetails.secondaryOpeningHours;
-            List<WindowDTO> windows = new ArrayList<>();
+            List<WindowDTO> windows;
             if (openingHours != null) {
                 OpeningHours.Period[] periods = openingHours.periods;
                 Map<String, WindowDTO> generatedWindowList = new HashMap<>();
@@ -114,6 +139,8 @@ public class UserService {
         } else {
             customerDetails = generateCustomerInfo(customerInfo, opCoId, getDefaultWindows());
         }
+        String key = apiUtils.keyGenerator(customerDetails.getOpcoId(), customerDetails.getCustomerId());
+        placeRepository.saveCustomerPlaceDetails(customerDetails, key);
         return customerDetails;
     }
 
@@ -142,15 +169,16 @@ public class UserService {
 
     private WindowDTO generateCompleteWindow(OpeningHours.Period period, WindowItemDTO googleBusinessHours, int index) {
         List<WindowItemDTO> googleBusinessHourList = new ArrayList<>();
+        int num = RANDOM.ints(0, 20).findFirst().orElse(0);
         googleBusinessHourList.add(googleBusinessHours != null ?
                 googleBusinessHours : WindowItemDTO.builder().build());
         WindowDTO window = WindowDTO.builder()
-                .window(WindowItemDTO.builder().from(START_TIME).to(END_TIME).build())
+                .window(windowsList.get(num))
                 .googleBusinessHours(googleBusinessHourList)
                 .exception(apiUtils.generateExceptionLevel())
                 .reasonCode(apiUtils.generateReasonCode()).build();
         if (googleBusinessHours == null && period == null) {
-            window.setDay(String.valueOf(index));
+                window.setDay(String.valueOf(index));
         } else {
             window.setDay(Constants.DayNumberOfWeek.valueOf(period.open.day.getName()).getValue());
         }
@@ -174,6 +202,24 @@ public class UserService {
             windows.add(window);
         });
         return windows;
+    }
+
+    public WindowUpdateResponse upsertWindowActions(WindowUpdateDTO windowUpdate) {
+        String key = apiUtils.keyGenerator(windowUpdate.getOpcoId(), windowUpdate.getCustomerId());
+        Optional<CustomerDetailsDAO> recordFound = placeRepository.findById(key);
+        if (recordFound.isPresent()) {
+            CustomerDetailsDAO record = recordFound.get();
+            List<WindowDTO> windows = record.getWindows();
+            WindowDTO existingWindowRecord = windows.stream().filter(x -> x.getDay().equals(windowUpdate.getDay())).findFirst().orElse(null);
+            if (existingWindowRecord != null) {
+                existingWindowRecord.setReasonCode(windowUpdate.getReasonCode());
+                record.setWindows(windows);
+                placeRepository.save(record);
+                return WindowUpdateResponse.builder().message("Data updated")
+                        .customerId(windowUpdate.getCustomerId()).opcoId(windowUpdate.getOpcoId()).build();
+            }
+        }
+        return WindowUpdateResponse.builder().message("Failed to update").build();
     }
 
 }
