@@ -15,12 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.sysco.hackathon.aperti.util.Constants.customerMap;
@@ -101,11 +99,22 @@ public class UserService {
                 windows = getDefaultWindows();
             }
             windows.sort(Comparator.comparingInt((WindowDTO w) -> Integer.parseInt(w.getDay())));
-            customerDetails = generateCustomerInfo(customerInfo, opCoId, windows);
+            List<WindowDTO> windowsUpdated = processWindows(windows);
+            customerDetails = generateCustomerInfo(customerInfo, opCoId, windowsUpdated);
         } else {
             customerDetails = generateCustomerInfo(customerInfo, opCoId, getDefaultWindows());
         }
         return customerDetails;
+    }
+
+    private List<WindowDTO> processWindows(List<WindowDTO> windows) {
+        Map<String, List<WindowDTO>> windowGroups = windows.stream()
+                .collect(Collectors.groupingBy(WindowDTO::getDay));
+        List<WindowDTO> windowsUpdated = new ArrayList<>();
+        for (Map.Entry<String, List<WindowDTO>> e : windowGroups.entrySet()) {
+            windowsUpdated.add(e.getValue().get(0));
+        }
+        return windowsUpdated;
     }
 
     private WindowItemDTO generateGoogleWindows(OpeningHours.Period period) {
