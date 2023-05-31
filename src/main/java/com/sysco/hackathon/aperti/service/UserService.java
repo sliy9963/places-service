@@ -18,11 +18,10 @@ import org.springframework.web.client.RestTemplate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.sysco.hackathon.aperti.util.Constants.customerMap;
+import static com.sysco.hackathon.aperti.util.Constants.*;
 
 @Service
 public class UserService {
@@ -54,10 +53,11 @@ public class UserService {
         this.placeService = placeService;
     }
 
-    private final ExecutorService executorService = Executors.newFixedThreadPool(100);
+    @Autowired
+    private ExecutorService taskExecutor;
 
     public List<CustomerDetailsDTO> getCustomersForOpCoGiven(String opCoId) {
-        LOGGER.info("[UserService] Request received: OpCo ID: {}, Request Id: {}", opCoId, UUID.randomUUID());
+        LOGGER.info("[UserService] Request received to fetch customer data for OpCo ID: {}", opCoId);
         try {
             List<CustomerDetailsDTO> customers = new ArrayList<>();
             List<SfdcCustomerDTO> customerInfoList = customerMap.get(opCoId);
@@ -66,11 +66,11 @@ public class UserService {
                 for (SfdcCustomerDTO customerInfo : customerInfoList) {
                     CompletableFuture<Void> customerFuture = CompletableFuture.runAsync(() -> {
                         LOGGER.info("[UserService] Executing on thread: {}, OpCo: {}, Customer: {}", Thread.currentThread().getName(), opCoId, customerInfo.getName());
-                        String query = apiUtils.getPlaceApiQuery(customerInfo);
+                        String query = apiUtils.getPlaceApiQuery(customerInfo).trim();
                         LOGGER.info("[UserService] Place API query: {}, OpCo: {}", query, opCoId);
-                        CustomerDetailsDTO customerDetails = processGoogleApiWindows(query, customerInfo, opCoId);
+                        CustomerDetailsDTO customerDetails = generateCustomerWithGoogleWindows(query, customerInfo, opCoId);
                         customers.add(customerDetails);
-                    }, executorService);
+                    }, taskExecutor);
                     futures.add(customerFuture);
                 }
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
@@ -81,11 +81,13 @@ public class UserService {
         }
     }
 
-    private CustomerDetailsDTO processGoogleApiWindows(String query, SfdcCustomerDTO customerInfo, String opCoId) {
+    private CustomerDetailsDTO generateCustomerWithGoogleWindows(String query, SfdcCustomerDTO customerInfo, String opCoId) {
         CustomerDetailsDTO customerDetails;
         List<PlaceDetails> customerDataFromGoogle = placeService.getPlaceDetails(query);
         if (customerDataFromGoogle.size() > 0) {
             PlaceDetails placeDetails = customerDataFromGoogle.get(0);
+            LOGGER.info("[UserService] Customer Found ===> Query: {} | Name: {} | Address: {}",
+                    query, placeDetails.name, placeDetails.formattedAddress);
             OpeningHours openingHours = placeDetails.openingHours != null ? placeDetails.openingHours : placeDetails.secondaryOpeningHours;
             List<WindowDTO> windows = new ArrayList<>();
             if (openingHours != null) {
@@ -99,11 +101,22 @@ public class UserService {
                 windows = getDefaultWindows();
             }
             windows.sort(Comparator.comparingInt((WindowDTO w) -> Integer.parseInt(w.getDay())));
-            customerDetails = generateCustomerInfo(customerInfo, opCoId, windows);
+            List<WindowDTO> windowsUpdated = processWindows(windows);
+            customerDetails = generateCustomerInfo(customerInfo, opCoId, windowsUpdated);
         } else {
             customerDetails = generateCustomerInfo(customerInfo, opCoId, getDefaultWindows());
         }
         return customerDetails;
+    }
+
+    private List<WindowDTO> processWindows(List<WindowDTO> windows) {
+        Map<String, List<WindowDTO>> windowGroups = windows.stream()
+                .collect(Collectors.groupingBy(WindowDTO::getDay));
+        List<WindowDTO> windowsUpdated = new ArrayList<>();
+        for (Map.Entry<String, List<WindowDTO>> e : windowGroups.entrySet()) {
+            windowsUpdated.add(e.getValue().get(0));
+        }
+        return windowsUpdated;
     }
 
     private WindowItemDTO generateGoogleWindows(OpeningHours.Period period) {
@@ -122,7 +135,7 @@ public class UserService {
     private WindowDTO generateCompleteWindow(OpeningHours.Period period, WindowItemDTO googleBusinessHours, int index) {
         WindowItemDTO emptyWindow = WindowItemDTO.builder().build();
         WindowDTO window = WindowDTO.builder()
-                .window(WindowItemDTO.builder().from("01:00").to("20:00").build())
+                .window(WindowItemDTO.builder().from(START_TIME).to(END_TIME).build())
                 .exception(apiUtils.generateExceptionLevel())
                 .reasonCode(apiUtils.generateReasonCode()).build();
         if (googleBusinessHours == null && period == null) {

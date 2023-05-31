@@ -1,6 +1,7 @@
 package com.sysco.hackathon.aperti.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.GeoApiContext;
 import com.sysco.hackathon.aperti.dto.OpCoDetailsDTO;
@@ -13,7 +14,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -33,6 +33,9 @@ public class ApiUtils {
 
     @Value("${application.customer.service.url}")
     private String customerServiceUrl;
+
+    private final static ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public GeoApiContext getContext() {
         return new GeoApiContext.Builder()
@@ -94,12 +97,11 @@ public class ApiUtils {
         return customerInfo.getName().toLowerCase() + " " + customerInfo.getShippingStreet().toLowerCase();
     }
 
-    public Map<String, OpCoDetailsDTO> readOpCoDataFile() {
+    public Map<String, OpCoDetailsDTO> readOpCoDataFile(String fileName) {
         Map<String, OpCoDetailsDTO> map;
         try {
-            Resource resource = new ClassPathResource("mockOpcoDetails.json");
-            map = new ObjectMapper()
-                    .readValue(resource.getInputStream(), new TypeReference<>() {});
+            Resource resource = new ClassPathResource(fileName);
+            map = OBJECT_MAPPER.readValue(resource.getInputStream(), new TypeReference<>() {});
         } catch (Exception e) {
             throw new RuntimeException("Failed to read opco JSON: " + e);
         }
@@ -110,12 +112,11 @@ public class ApiUtils {
         List<SfdcCustomerDTO> data;
         try {
             Resource resource = new ClassPathResource(fileName);
-            data = new ObjectMapper().readValue(resource.getInputStream(), new TypeReference<>() {});
+            data = OBJECT_MAPPER.readValue(resource.getInputStream(), new TypeReference<>() {});
         } catch (Exception e) {
             throw new RuntimeException("Failed to read opco JSON: " + e);
         }
         return data;
     }
-
 
 }

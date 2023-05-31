@@ -1,0 +1,152 @@
+{
+  "056": [
+    {
+      "customer": "000026",
+      "opco": "056",
+      "deliveryWindow": {
+        "storeOpenTimeByDay": {
+          "SUN": null,
+          "MON": "01:00",
+          "TUE": null,
+          "WED": null,
+          "THU": "01:00",
+          "FRI": null,
+          "SAT": "01:00"
+        },
+        "storeCloseTimeByDay": {
+          "SUN": null,
+          "MON": "20:00",
+          "TUE": null,
+          "WED": null,
+          "THU": "20:00",
+          "FRI": null,
+          "SAT": "20:00"
+        }
+      }
+    },
+    {
+      "customer": "002683",
+      "opco": "056",
+      "deliveryWindow": {
+        "storeOpenTimeByDay": {
+          "SUN": null,
+          "MON": "02:00",
+          "TUE": null,
+          "WED": null,
+          "THU": "02:00",
+          "FRI": null,
+          "SAT": "02:00"
+        },
+        "storeCloseTimeByDay": {
+          "SUN": null,
+          "MON": "20:00",
+          "TUE": null,
+          "WED": null,
+          "THU": "20:00",
+          "FRI": null,
+          "SAT": "20:00"
+        }
+      }
+    }
+  ],
+  "067": [
+    {
+      "customer": "296921",
+      "opco": "067",
+      "deliveryWindow": {
+        "storeOpenTimeByDay": {
+          "SUN": null,
+          "MON": "01:00",
+          "TUE": null,
+          "WED": null,
+          "THU": "01:00",
+          "FRI": null,
+          "SAT": "01:00"
+        },
+        "storeCloseTimeByDay": {
+          "SUN": null,
+          "MON": "20:00",
+          "TUE": null,
+          "WED": null,
+          "THU": "20:00",
+          "FRI": null,
+          "SAT": "20:00"
+        }
+      }
+    },
+    {
+      "customer": "002675",
+      "opco": "067",
+      "deliveryWindow": {
+        "storeOpenTimeByDay": {
+          "SUN": null,
+          "MON": "02:00",
+          "TUE": null,
+          "WED": null,
+          "THU": "02:00",
+          "FRI": null,
+          "SAT": "02:00"
+        },
+        "storeCloseTimeByDay": {
+          "SUN": null,
+          "MON": "20:00",
+          "TUE": null,
+          "WED": null,
+          "THU": "20:00",
+          "FRI": null,
+          "SAT": "20:00"
+        }
+      }
+    }
+  ],
+  "043": [
+    {
+      "customer": "075010",
+      "opco": "043",
+      "deliveryWindow": {
+        "storeOpenTimeByDay": {
+          "SUN": null,
+          "MON": "01:00",
+          "TUE": null,
+          "WED": null,
+          "THU": "01:00",
+          "FRI": null,
+          "SAT": "01:00"
+        },
+        "storeCloseTimeByDay": {
+          "SUN": null,
+          "MON": "20:00",
+          "TUE": null,
+          "WED": null,
+          "THU": "20:00",
+          "FRI": null,
+          "SAT": "20:00"
+        }
+      }
+    },
+    {
+      "customer": "102608",
+      "opco": "043",
+      "deliveryWindow": {
+        "storeOpenTimeByDay": {
+          "SUN": null,
+          "MON": "02:00",
+          "TUE": null,
+          "WED": null,
+          "THU": "02:00",
+          "FRI": null,
+          "SAT": "02:00"
+        },
+        "storeCloseTimeByDay": {
+          "SUN": null,
+          "MON": "20:00",
+          "TUE": null,
+          "WED": null,
+          "THU": "20:00",
+          "FRI": null,
+          "SAT": "20:00"
+        }
+      }
+    }
+  ]
+}

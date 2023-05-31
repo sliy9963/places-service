@@ -23,7 +23,7 @@ public class RouteService {
     public List<OpCoDTO> getOpCos() {
         List<OpCoDTO> opcoList = new ArrayList<>();
         try {
-            Map<String, OpCoDetailsDTO> opcoMap = apiUtils.readOpCoDataFile();
+            Map<String, OpCoDetailsDTO> opcoMap = apiUtils.readOpCoDataFile("mockOpcoDetails.json");
             for (Map.Entry<String, OpCoDetailsDTO> entry : opcoMap.entrySet()) {
                 OpCoDTO opco = OpCoDTO.builder().id(entry.getKey()).name(entry.getValue().getName()).build();
                 opcoList.add(opco);

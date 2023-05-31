@@ -2,7 +2,10 @@ package com.sysco.hackathon.aperti.util;
 
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Constants {
 
@@ -28,7 +31,7 @@ public class Constants {
         Friday("4"),
         Saturday("5");
 
-        private DayNumberOfWeek(String value) {
+        DayNumberOfWeek(String value) {
             this.value = value;
         }
 
@@ -39,6 +42,9 @@ public class Constants {
         }
     }
 
-    public static final Map<String, List<SfdcCustomerDTO>> customerMap = new HashMap<>();
+    public static final String START_TIME = "01:00";
+    public static final String END_TIME = "20:00";
+
+    public static final Map<String, List<SfdcCustomerDTO>> customerMap = new ConcurrentHashMap<>();
 
 }
