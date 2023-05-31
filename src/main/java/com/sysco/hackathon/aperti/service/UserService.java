@@ -66,8 +66,8 @@ public class UserService {
                 for (SfdcCustomerDTO customerInfo : customerInfoList) {
                     CompletableFuture<Void> customerFuture = CompletableFuture.runAsync(() -> {
                         LOGGER.info("[UserService] Executing on thread: {}, OpCo: {}, Customer: {}", Thread.currentThread().getName(), opCoId, customerInfo.getName());
-                        String query = apiUtils.getPlaceApiQuery(customerInfo);
-                        LOGGER.info("[UserService] Place API query: {}, OpCo: {}", query.trim(), opCoId);
+                        String query = apiUtils.getPlaceApiQuery(customerInfo).trim();
+                        LOGGER.info("[UserService] Place API query: {}, OpCo: {}", query, opCoId);
                         CustomerDetailsDTO customerDetails = generateCustomerWithGoogleWindows(query, customerInfo, opCoId);
                         customers.add(customerDetails);
                     }, taskExecutor);
