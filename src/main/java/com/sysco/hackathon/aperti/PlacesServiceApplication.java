@@ -10,6 +10,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import static com.sysco.hackathon.aperti.util.Constants.customerMap;
+import static com.sysco.hackathon.aperti.util.Constants.opcoMap;
 
 @SpringBootApplication
 public class PlacesServiceApplication implements CommandLineRunner {
@@ -34,5 +35,6 @@ public class PlacesServiceApplication implements CommandLineRunner {
 		customerMap.put("043", apiUtils.readCustomerFile("sfdcCustomers043.json"));
 		customerMap.put("056", apiUtils.readCustomerFile("sfdcCustomers056.json"));
 		customerMap.put("067", apiUtils.readCustomerFile("sfdcCustomers067.json"));
+		opcoMap.putAll(apiUtils.readOpCoDataFile("mockOpcoDetails.json"));
 	}
 }
