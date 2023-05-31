@@ -15,11 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.sysco.hackathon.aperti.util.Constants.customerMap;
@@ -54,7 +55,8 @@ public class UserService {
         this.placeService = placeService;
     }
 
-    private final ExecutorService executorService = Executors.newFixedThreadPool(100);
+    @Autowired
+    private ExecutorService taskExecutor;
 
     public List<CustomerDetailsDTO> getCustomersForOpCoGiven(String opCoId) {
         LOGGER.info("[UserService] Request received: OpCo ID: {}, Request Id: {}", opCoId, UUID.randomUUID());
@@ -68,9 +70,9 @@ public class UserService {
                         LOGGER.info("[UserService] Executing on thread: {}, OpCo: {}, Customer: {}", Thread.currentThread().getName(), opCoId, customerInfo.getName());
                         String query = apiUtils.getPlaceApiQuery(customerInfo);
                         LOGGER.info("[UserService] Place API query: {}, OpCo: {}", query, opCoId);
-                        CustomerDetailsDTO customerDetails = processGoogleApiWindows(query, customerInfo, opCoId);
+                        CustomerDetailsDTO customerDetails = generateCustomerWithGoogleWindows(query, customerInfo, opCoId);
                         customers.add(customerDetails);
-                    }, executorService);
+                    }, taskExecutor);
                     futures.add(customerFuture);
                 }
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
@@ -81,7 +83,7 @@ public class UserService {
         }
     }
 
-    private CustomerDetailsDTO processGoogleApiWindows(String query, SfdcCustomerDTO customerInfo, String opCoId) {
+    private CustomerDetailsDTO generateCustomerWithGoogleWindows(String query, SfdcCustomerDTO customerInfo, String opCoId) {
         CustomerDetailsDTO customerDetails;
         List<PlaceDetails> customerDataFromGoogle = placeService.getPlaceDetails(query);
         if (customerDataFromGoogle.size() > 0) {

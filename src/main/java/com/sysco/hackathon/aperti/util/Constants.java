@@ -1,8 +1,10 @@
 package com.sysco.hackathon.aperti.util;
 
+import com.google.maps.model.PlaceDetails;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Constants {
 
@@ -39,6 +41,7 @@ public class Constants {
         }
     }
 
-    public static final Map<String, List<SfdcCustomerDTO>> customerMap = new HashMap<>();
+    public static final Map<String, List<SfdcCustomerDTO>> customerMap = new ConcurrentHashMap<>();
+    public static final Map<String, PlaceDetails> placesMap = new ConcurrentHashMap<>();
 
 }
