@@ -91,7 +91,7 @@ public class UserService {
             LOGGER.info("[UserService] Customer Found ===> Query: {} | Name: {} | Address: {}",
                     query, placeDetails.name, placeDetails.formattedAddress);
             OpeningHours openingHours = placeDetails.openingHours != null ? placeDetails.openingHours : placeDetails.secondaryOpeningHours;
-            List<WindowDTO> windows = new ArrayList<>();
+            List<WindowDTO> windows;
             if (openingHours != null) {
                 OpeningHours.Period[] periods = openingHours.periods;
                 Map<String, WindowDTO> generatedWindowList = new HashMap<>();
@@ -153,7 +153,7 @@ public class UserService {
                 .exception(apiUtils.generateExceptionLevel())
                 .reasonCode(apiUtils.generateReasonCode()).build();
         if (googleBusinessHours == null && period == null) {
-            window.setDay(String.valueOf(index));
+                window.setDay(String.valueOf(index));
         } else {
             window.setDay(Constants.DayNumberOfWeek.valueOf(period.open.day.getName()).getValue());
         }
