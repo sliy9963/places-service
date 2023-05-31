@@ -10,7 +10,6 @@ import com.sysco.hackathon.aperti.dto.response.WindowDTO;
 import com.sysco.hackathon.aperti.dto.response.WindowItemDTO;
 import com.sysco.hackathon.aperti.dto.response.WindowUpdateResponse;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
-import com.sysco.hackathon.aperti.repository.PlaceRepository;
 import com.sysco.hackathon.aperti.repository.impl.PlaceRepositoryImpl;
 import com.sysco.hackathon.aperti.util.ApiUtils;
 import com.sysco.hackathon.aperti.util.Constants;
@@ -91,11 +90,27 @@ public class UserService {
         }
     }
 
+    private PlaceDetails getPlaceDetails(String key, String query) {
+        PlaceDetails placeDetails = null;
+        if (placesMap.containsKey(key)) {
+            placeDetails = placesMap.get(key);
+            LOGGER.info("Fetching data from cache");
+        } else {
+            List<PlaceDetails> customerDataFromGoogle = placeService.getPlaceDetails(query);
+            if (customerDataFromGoogle.size() > 0) {
+                placeDetails = customerDataFromGoogle.get(0);
+                placesMap.put(key, placeDetails);
+            }
+            LOGGER.info("Fetching data from API");
+        }
+        System.out.println(placesMap);
+        return placeDetails;
+    }
+
     private CustomerDetailsDTO generateCustomerWithGoogleWindows(String query, SfdcCustomerDTO customerInfo, String opCoId) {
         CustomerDetailsDTO customerDetails;
-        List<PlaceDetails> customerDataFromGoogle = placeService.getPlaceDetails(query);
-        if (customerDataFromGoogle.size() > 0) {
-            PlaceDetails placeDetails = customerDataFromGoogle.get(0);
+        PlaceDetails placeDetails = getPlaceDetails(customerInfo.getAccount_ID__c(), query);
+        if (placeDetails != null) {
             LOGGER.info("[UserService] Customer Found ===> Query: {} | Name: {} | Address: {}",
                     query, placeDetails.name, placeDetails.formattedAddress);
             OpeningHours openingHours = placeDetails.openingHours != null ? placeDetails.openingHours : placeDetails.secondaryOpeningHours;
@@ -125,10 +140,7 @@ public class UserService {
             customerDetails = generateCustomerInfo(customerInfo, opCoId, getDefaultWindows());
         }
         String key = apiUtils.keyGenerator(customerDetails.getOpcoId(), customerDetails.getCustomerId());
-        boolean response = placeRepository.saveCustomerPlaceDetails(customerDetails, key);
-        if (response) {
-            LOGGER.info("Data saved to database.... Key: {}", key);
-        }
+        placeRepository.saveCustomerPlaceDetails(customerDetails, key);
         return customerDetails;
     }
 
@@ -202,7 +214,6 @@ public class UserService {
             if (existingWindowRecord != null) {
                 existingWindowRecord.setReasonCode(windowUpdate.getReasonCode());
                 record.setWindows(windows);
-                System.out.println(windows);
                 placeRepository.save(record);
                 return WindowUpdateResponse.builder().message("Data updated")
                         .customerId(windowUpdate.getCustomerId()).opcoId(windowUpdate.getOpcoId()).build();

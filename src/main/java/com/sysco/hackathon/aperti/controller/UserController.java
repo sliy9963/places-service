@@ -1,6 +1,5 @@
 package com.sysco.hackathon.aperti.controller;
 
-import com.google.maps.model.OpeningHours;
 import com.sysco.hackathon.aperti.dto.request.WindowUpdateDTO;
 import com.sysco.hackathon.aperti.dto.response.CustomerDetailsDTO;
 import com.sysco.hackathon.aperti.dto.response.WindowUpdateResponse;
@@ -13,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static com.sysco.hackathon.aperti.util.Constants.placesMap;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -30,6 +31,7 @@ public class UserController {
     @GetMapping(path = "/customers")
     public ResponseEntity<List<CustomerDetailsDTO>> getCustomersForOpCo(@RequestParam("opco") String opCoId) {
         LOGGER.info("[UserController] Request received to fetch customer info for OpCo ID: {}", opCoId);
+        LOGGER.info("[UserController] Places Cache size => {}", placesMap.size());
         return new ResponseEntity<>(userService.getCustomersForOpCoGiven(opCoId), HttpStatus.OK);
     }
 
