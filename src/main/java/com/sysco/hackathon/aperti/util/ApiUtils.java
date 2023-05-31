@@ -1,9 +1,11 @@
 package com.sysco.hackathon.aperti.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.GeoApiContext;
 import com.sysco.hackathon.aperti.dto.OpCoDetailsDTO;
+import com.sysco.hackathon.aperti.dto.ScheduledDeliveryDTO;
 import com.sysco.hackathon.aperti.dto.customer.CustomerResponseDTO;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 import lombok.AccessLevel;
@@ -33,6 +35,9 @@ public class ApiUtils {
 
     @Value("${application.customer.service.url}")
     private String customerServiceUrl;
+
+    private final static ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public GeoApiContext getContext() {
         return new GeoApiContext.Builder()
@@ -98,8 +103,7 @@ public class ApiUtils {
         Map<String, OpCoDetailsDTO> map;
         try {
             Resource resource = new ClassPathResource("mockOpcoDetails.json");
-            map = new ObjectMapper()
-                    .readValue(resource.getInputStream(), new TypeReference<>() {});
+            map = OBJECT_MAPPER.readValue(resource.getInputStream(), new TypeReference<>() {});
         } catch (Exception e) {
             throw new RuntimeException("Failed to read opco JSON: " + e);
         }
@@ -110,7 +114,18 @@ public class ApiUtils {
         List<SfdcCustomerDTO> data;
         try {
             Resource resource = new ClassPathResource(fileName);
-            data = new ObjectMapper().readValue(resource.getInputStream(), new TypeReference<>() {});
+            data = OBJECT_MAPPER.readValue(resource.getInputStream(), new TypeReference<>() {});
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read opco JSON: " + e);
+        }
+        return data;
+    }
+
+    public Map<String, List<ScheduledDeliveryDTO>> readScheduleFile(String fileName) {
+        Map<String, List<ScheduledDeliveryDTO>> data;
+        try {
+            Resource resource = new ClassPathResource(fileName);
+            data = OBJECT_MAPPER.readValue(resource.getInputStream(), new TypeReference<>() {});
         } catch (Exception e) {
             throw new RuntimeException("Failed to read opco JSON: " + e);
         }
