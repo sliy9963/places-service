@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.GeoApiContext;
 import com.sysco.hackathon.aperti.dto.OpCoDetailsDTO;
-import com.sysco.hackathon.aperti.dto.ScheduledDeliveryDTO;
+import com.sysco.hackathon.aperti.dto.schedule.ScheduledDeliveryDTO;
 import com.sysco.hackathon.aperti.dto.customer.CustomerResponseDTO;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 import lombok.AccessLevel;
@@ -15,7 +15,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package com.sysco.hackathon.aperti.dto;
+package com.sysco.hackathon.aperti.dto.schedule;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

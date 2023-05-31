@@ -1,6 +1,6 @@
 package com.sysco.hackathon.aperti;
 
-import com.sysco.hackathon.aperti.dto.ScheduledDeliveryDTO;
+import com.sysco.hackathon.aperti.dto.schedule.ScheduledDeliveryDTO;
 import com.sysco.hackathon.aperti.util.ApiUtils;
 import org.junit.jupiter.api.Test;
 
