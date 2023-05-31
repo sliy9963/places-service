@@ -56,6 +56,8 @@ public class UserService {
     @Autowired
     private ExecutorService taskExecutor;
 
+    private static final Random RANDOM = new Random();
+
     public List<CustomerDetailsDTO> getCustomersForOpCoGiven(String opCoId) {
         LOGGER.info("[UserService] Request received to fetch customer data for OpCo ID: {}", opCoId);
         try {
@@ -142,10 +144,11 @@ public class UserService {
 
     private WindowDTO generateCompleteWindow(OpeningHours.Period period, WindowItemDTO googleBusinessHours, int index) {
         List<WindowItemDTO> googleBusinessHourList = new ArrayList<>();
+        int num = RANDOM.ints(0, 20).findFirst().orElse(0);
         googleBusinessHourList.add(googleBusinessHours != null ?
                 googleBusinessHours : WindowItemDTO.builder().build());
         WindowDTO window = WindowDTO.builder()
-                .window(WindowItemDTO.builder().from(START_TIME).to(END_TIME).build())
+                .window(windowsList.get(num))
                 .googleBusinessHours(googleBusinessHourList)
                 .exception(apiUtils.generateExceptionLevel())
                 .reasonCode(apiUtils.generateReasonCode()).build();

@@ -3,10 +3,7 @@ package com.sysco.hackathon.aperti.service;
 import com.google.maps.FindPlaceFromTextRequest;
 import com.google.maps.GeoApiContext;
 import com.google.maps.PlacesApi;
-import com.google.maps.model.FindPlaceFromText;
-import com.google.maps.model.OpeningHours;
-import com.google.maps.model.PlaceDetails;
-import com.google.maps.model.PlacesSearchResult;
+import com.google.maps.model.*;
 import com.sysco.hackathon.aperti.util.ApiUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -49,6 +46,19 @@ public class PlaceService {
                 PlaceDetails placeDetails = PlacesApi.placeDetails(apiContext, place.placeId).await();
                 places.add(placeDetails);
             }
+            return places;
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    public List<PlacesSearchResult> getPlaceDetailsByLocation(String placeSearch, String lat, String lon) {
+        List<PlacesSearchResult> places = new ArrayList<>();
+        try {
+            LatLng location = new LatLng(Double.parseDouble(lat), Double.parseDouble(lon));
+            PlacesSearchResponse placeDetails = PlacesApi.textSearchQuery(apiContext, placeSearch, location).await();
+            PlacesSearchResult[] results = placeDetails.results;
+            Collections.addAll(places, results);
             return places;
         } catch (Exception e) {
             return new ArrayList<>();

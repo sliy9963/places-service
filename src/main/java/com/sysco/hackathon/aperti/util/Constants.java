@@ -1,8 +1,12 @@
 package com.sysco.hackathon.aperti.util;
 
+import com.google.maps.model.PlaceDetails;
 import com.sysco.hackathon.aperti.dto.OpCoDetailsDTO;
+import com.sysco.hackathon.aperti.dto.response.WindowItemDTO;
+import com.sysco.hackathon.aperti.dto.schedule.OpeningHoursDTO;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -48,5 +52,10 @@ public class Constants {
 
     public static final Map<String, List<SfdcCustomerDTO>> customerMap = new ConcurrentHashMap<>();
     public static final Map<String, OpCoDetailsDTO> opcoMap = new ConcurrentHashMap<>();
+
+    public static final Map<String, PlaceDetails> placesMap = new ConcurrentHashMap<>();
+
+    public static final List<WindowItemDTO> windowsList = new ArrayList<>();
+
 
 }

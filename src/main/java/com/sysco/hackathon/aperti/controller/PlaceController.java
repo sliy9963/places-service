@@ -33,6 +33,13 @@ public class PlaceController {
         return new ResponseEntity<>(placeService.getPlaceDetails(placeSearch), HttpStatus.OK);
     }
 
+    @GetMapping(path = "/places/byLocation")
+    public ResponseEntity<List<PlacesSearchResult>> getPlaceDetailsByLocation(
+            @RequestParam("search") String placeSearch, @RequestParam("lat") String lat,
+            @RequestParam("lon") String lon) {
+        return new ResponseEntity<>(placeService.getPlaceDetailsByLocation(placeSearch, lat, lon), HttpStatus.OK);
+    }
+
     @GetMapping(path = "/places/openingHours")
     public ResponseEntity<List<OpeningHours>> getPlaceOpeningHours(@RequestParam("search") String placeSearch) {
         return new ResponseEntity<>(placeService.getPlaceOpeningHours(placeSearch), HttpStatus.OK);
