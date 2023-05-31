@@ -1,5 +1,6 @@
 package com.sysco.hackathon.aperti.util;
 
+import com.sysco.hackathon.aperti.dto.OpCoDetailsDTO;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 
 import java.util.Arrays;
@@ -46,5 +47,6 @@ public class Constants {
     public static final String END_TIME = "20:00";
 
     public static final Map<String, List<SfdcCustomerDTO>> customerMap = new ConcurrentHashMap<>();
+    public static final Map<String, OpCoDetailsDTO> opcoMap = new ConcurrentHashMap<>();
 
 }
