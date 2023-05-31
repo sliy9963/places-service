@@ -7,6 +7,8 @@ import com.sysco.hackathon.aperti.dto.response.CustomerDetailsDTO;
 import com.sysco.hackathon.aperti.dto.response.WindowDTO;
 import com.sysco.hackathon.aperti.dto.response.WindowItemDTO;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
+import com.sysco.hackathon.aperti.repository.PlaceRepository;
+import com.sysco.hackathon.aperti.repository.impl.PlaceRepositoryImpl;
 import com.sysco.hackathon.aperti.util.ApiUtils;
 import com.sysco.hackathon.aperti.util.Constants;
 import org.slf4j.Logger;
@@ -55,6 +57,9 @@ public class UserService {
 
     @Autowired
     private ExecutorService taskExecutor;
+
+    @Autowired
+    private PlaceRepositoryImpl placeRepository;
 
     private static final Random RANDOM = new Random();
 
@@ -115,6 +120,10 @@ public class UserService {
             customerDetails = generateCustomerInfo(customerInfo, opCoId, windowsUpdated);
         } else {
             customerDetails = generateCustomerInfo(customerInfo, opCoId, getDefaultWindows());
+        }
+        boolean response = placeRepository.saveCustomerPlaceDetails(customerDetails);
+        if (response) {
+            LOGGER.info("Data saved to database....");
         }
         return customerDetails;
     }

@@ -15,7 +15,7 @@ public class ScheduledMockService {
     public List<WindowItemDTO> getMockSchedules() {
         List<WindowItemDTO> windowItemsList = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
-            int openHour = random.ints(0, 12).findFirst().orElse(0);
+            int openHour = random.ints(7, 11).findFirst().orElse(0);
             String openHourStr = String.valueOf(openHour);
             if (openHour < 10) {
                 openHourStr = "0" + openHourStr;
