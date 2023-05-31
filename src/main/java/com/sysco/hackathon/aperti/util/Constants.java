@@ -41,6 +41,9 @@ public class Constants {
         }
     }
 
+    public static final String START_TIME = "01:00";
+    public static final String END_TIME = "20:00";
+
     public static final Map<String, List<SfdcCustomerDTO>> customerMap = new ConcurrentHashMap<>();
     public static final Map<String, PlaceDetails> placesMap = new ConcurrentHashMap<>();
 

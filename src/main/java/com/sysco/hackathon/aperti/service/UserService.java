@@ -21,7 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.sysco.hackathon.aperti.util.Constants.customerMap;
+import static com.sysco.hackathon.aperti.util.Constants.*;
 
 @Service
 public class UserService {
@@ -57,7 +57,7 @@ public class UserService {
     private ExecutorService taskExecutor;
 
     public List<CustomerDetailsDTO> getCustomersForOpCoGiven(String opCoId) {
-        LOGGER.info("[UserService] Request received: OpCo ID: {}, Request Id: {}", opCoId, UUID.randomUUID());
+        LOGGER.info("[UserService] Request received to fetch customer data for OpCo ID: {}", opCoId);
         try {
             List<CustomerDetailsDTO> customers = new ArrayList<>();
             List<SfdcCustomerDTO> customerInfoList = customerMap.get(opCoId);
@@ -135,7 +135,7 @@ public class UserService {
     private WindowDTO generateCompleteWindow(OpeningHours.Period period, WindowItemDTO googleBusinessHours, int index) {
         WindowItemDTO emptyWindow = WindowItemDTO.builder().build();
         WindowDTO window = WindowDTO.builder()
-                .window(WindowItemDTO.builder().from("01:00").to("20:00").build())
+                .window(WindowItemDTO.builder().from(START_TIME).to(END_TIME).build())
                 .exception(apiUtils.generateExceptionLevel())
                 .reasonCode(apiUtils.generateReasonCode()).build();
         if (googleBusinessHours == null && period == null) {

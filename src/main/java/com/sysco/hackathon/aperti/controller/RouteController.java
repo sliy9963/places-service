@@ -11,9 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.sql.Date;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -30,7 +28,7 @@ public class RouteController {
 
     @GetMapping(path = "/opcos")
     public ResponseEntity<List<OpCoDTO>> getOpCoList() {
-        LOGGER.info("Request received to fetch opcos [RouteController]: {}", UUID.randomUUID());
+        LOGGER.info("[RouteController] Request received to fetch opcos");
         return new ResponseEntity<>(routeService.getOpCos(), HttpStatus.OK);
     }
 }

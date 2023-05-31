@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -27,7 +26,7 @@ public class UserController {
 
     @GetMapping(path = "/customers")
     public ResponseEntity<List<CustomerDetailsDTO>> getCustomersForOpCo(@RequestParam("opco") String opCoId) {
-        LOGGER.info("Request received [UserController]: OpCo ID: {}, Request Id: {}", opCoId, UUID.randomUUID());
+        LOGGER.info("[UserController] Request received to fetch customer info for OpCo ID: {}", opCoId);
         return new ResponseEntity<>(userService.getCustomersForOpCoGiven(opCoId), HttpStatus.OK);
     }
 }
