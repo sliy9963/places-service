@@ -2,6 +2,7 @@ package com.sysco.hackathon.aperti.dao;
 
 
 import com.sysco.hackathon.aperti.dto.response.WindowDTO;
+import com.sysco.hackathon.aperti.dto.response.WindowItemDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,4 +32,6 @@ public class CustomerDetailsDAO {
     @Field(write = Field.Write.ALWAYS)
     @Builder.Default
     List<WindowDTO> windows = new ArrayList<>();
+    @Builder.Default
+    List<WindowItemDTO> suggestedWindow = new ArrayList<>();
 }
