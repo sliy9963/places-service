@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.GeoApiContext;
 import com.sysco.hackathon.aperti.dto.OpCoDetailsDTO;
-import com.sysco.hackathon.aperti.dto.schedule.ScheduledDeliveryDTO;
 import com.sysco.hackathon.aperti.dto.customer.CustomerResponseDTO;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 import lombok.AccessLevel;
@@ -98,10 +97,10 @@ public class ApiUtils {
         return customerInfo.getName().toLowerCase() + " " + customerInfo.getShippingStreet().toLowerCase();
     }
 
-    public Map<String, OpCoDetailsDTO> readOpCoDataFile() {
+    public Map<String, OpCoDetailsDTO> readOpCoDataFile(String fileName) {
         Map<String, OpCoDetailsDTO> map;
         try {
-            Resource resource = new ClassPathResource("mockOpcoDetails.json");
+            Resource resource = new ClassPathResource(fileName);
             map = OBJECT_MAPPER.readValue(resource.getInputStream(), new TypeReference<>() {});
         } catch (Exception e) {
             throw new RuntimeException("Failed to read opco JSON: " + e);
@@ -119,17 +118,5 @@ public class ApiUtils {
         }
         return data;
     }
-
-    public Map<String, List<ScheduledDeliveryDTO>> readScheduleFile(String fileName) {
-        Map<String, List<ScheduledDeliveryDTO>> data;
-        try {
-            Resource resource = new ClassPathResource(fileName);
-            data = OBJECT_MAPPER.readValue(resource.getInputStream(), new TypeReference<>() {});
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to read opco JSON: " + e);
-        }
-        return data;
-    }
-
 
 }
