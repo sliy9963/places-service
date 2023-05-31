@@ -54,7 +54,7 @@ public class UserService {
         this.placeService = placeService;
     }
 
-    ExecutorService executorService = Executors.newFixedThreadPool(100);
+    private final ExecutorService executorService = Executors.newFixedThreadPool(100);
 
     public List<CustomerDetailsDTO> getCustomersForOpCoGiven(String opCoId) {
         LOGGER.info("[UserService] Request received: OpCo ID: {}, Request Id: {}", opCoId, UUID.randomUUID());
@@ -68,38 +68,42 @@ public class UserService {
                         LOGGER.info("[UserService] Executing on thread: {}, OpCo: {}, Customer: {}", Thread.currentThread().getName(), opCoId, customerInfo.getName());
                         String query = apiUtils.getPlaceApiQuery(customerInfo);
                         LOGGER.info("[UserService] Place API query: {}, OpCo: {}", query, opCoId);
-                        CustomerDetailsDTO customerDetails;
-                        List<PlaceDetails> customerDataFromGoogle = placeService.getPlaceDetails(query);
-                        if (customerDataFromGoogle.size() > 0) {
-                            PlaceDetails placeDetails = customerDataFromGoogle.get(0);
-                            OpeningHours openingHours = placeDetails.openingHours != null ? placeDetails.openingHours : placeDetails.secondaryOpeningHours;
-                            List<WindowDTO> windows = new ArrayList<>();
-                            if (openingHours != null) {
-                                OpeningHours.Period[] periods = openingHours.periods;
-                                for (OpeningHours.Period period : periods) {
-                                    WindowItemDTO googleBusinessHours = generateGoogleWindows(period);
-                                    WindowDTO window = generateCompleteWindow(period, googleBusinessHours, 0);
-                                    windows.add(window);
-                                }
-                            } else {
-                                windows = getDefaultWindows();
-                            }
-                            windows.sort(Comparator.comparingInt((WindowDTO w) -> Integer.parseInt(w.getDay())));
-                            customerDetails = generateCustomerInfo(customerInfo, opCoId, windows);
-                        } else {
-                            customerDetails = generateCustomerInfo(customerInfo, opCoId, getDefaultWindows());
-                        }
+                        CustomerDetailsDTO customerDetails = processGoogleApiWindows(query, customerInfo, opCoId);
                         customers.add(customerDetails);
                     }, executorService);
                     futures.add(customerFuture);
                 }
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-                return customers;
             }
-           return Collections.emptyList();
+            return customers;
         } catch (Exception e) {
             throw new RuntimeException("[UserService] Failed while fetching user data: " + e.getMessage());
         }
+    }
+
+    private CustomerDetailsDTO processGoogleApiWindows(String query, SfdcCustomerDTO customerInfo, String opCoId) {
+        CustomerDetailsDTO customerDetails;
+        List<PlaceDetails> customerDataFromGoogle = placeService.getPlaceDetails(query);
+        if (customerDataFromGoogle.size() > 0) {
+            PlaceDetails placeDetails = customerDataFromGoogle.get(0);
+            OpeningHours openingHours = placeDetails.openingHours != null ? placeDetails.openingHours : placeDetails.secondaryOpeningHours;
+            List<WindowDTO> windows = new ArrayList<>();
+            if (openingHours != null) {
+                OpeningHours.Period[] periods = openingHours.periods;
+                for (OpeningHours.Period period : periods) {
+                    WindowItemDTO googleBusinessHours = generateGoogleWindows(period);
+                    WindowDTO window = generateCompleteWindow(period, googleBusinessHours, 0);
+                    windows.add(window);
+                }
+            } else {
+                windows = getDefaultWindows();
+            }
+            windows.sort(Comparator.comparingInt((WindowDTO w) -> Integer.parseInt(w.getDay())));
+            customerDetails = generateCustomerInfo(customerInfo, opCoId, windows);
+        } else {
+            customerDetails = generateCustomerInfo(customerInfo, opCoId, getDefaultWindows());
+        }
+        return customerDetails;
     }
 
     private WindowItemDTO generateGoogleWindows(OpeningHours.Period period) {
