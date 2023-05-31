@@ -92,11 +92,19 @@ public class UserService {
             List<WindowDTO> windows = new ArrayList<>();
             if (openingHours != null) {
                 OpeningHours.Period[] periods = openingHours.periods;
+                Map<String, WindowDTO> generatedWindowList = new HashMap<>();
                 for (OpeningHours.Period period : periods) {
                     WindowItemDTO googleBusinessHours = generateGoogleWindows(period);
-                    WindowDTO window = generateCompleteWindow(period, googleBusinessHours, 0);
-                    windows.add(window);
+                    String dayIdentifier = Constants.DayNumberOfWeek.valueOf(period.open.day.getName()).getValue();
+                    if (generatedWindowList.get(dayIdentifier) == null) {
+                        WindowDTO window = generateCompleteWindow(period, googleBusinessHours, 0);
+                        generatedWindowList.put(dayIdentifier, window);
+                    } else {
+                        WindowDTO window = generatedWindowList.get(dayIdentifier);
+                        window.getGoogleBusinessHours().add(googleBusinessHours);
+                    }
                 }
+                windows = new ArrayList<>(generatedWindowList.values());
             } else {
                 windows = getDefaultWindows();
             }
@@ -133,16 +141,17 @@ public class UserService {
     }
 
     private WindowDTO generateCompleteWindow(OpeningHours.Period period, WindowItemDTO googleBusinessHours, int index) {
-        WindowItemDTO emptyWindow = WindowItemDTO.builder().build();
+        List<WindowItemDTO> googleBusinessHourList = new ArrayList<>();
+        googleBusinessHourList.add(googleBusinessHours != null ?
+                googleBusinessHours : WindowItemDTO.builder().build());
         WindowDTO window = WindowDTO.builder()
                 .window(WindowItemDTO.builder().from(START_TIME).to(END_TIME).build())
+                .googleBusinessHours(googleBusinessHourList)
                 .exception(apiUtils.generateExceptionLevel())
                 .reasonCode(apiUtils.generateReasonCode()).build();
         if (googleBusinessHours == null && period == null) {
-            window.setGoogleBusinessHours(emptyWindow);
             window.setDay(String.valueOf(index));
         } else {
-            window.setGoogleBusinessHours(googleBusinessHours);
             window.setDay(Constants.DayNumberOfWeek.valueOf(period.open.day.getName()).getValue());
         }
         return window;
