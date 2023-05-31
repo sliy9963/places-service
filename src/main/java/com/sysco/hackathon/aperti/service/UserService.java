@@ -67,7 +67,7 @@ public class UserService {
                     CompletableFuture<Void> customerFuture = CompletableFuture.runAsync(() -> {
                         LOGGER.info("[UserService] Executing on thread: {}, OpCo: {}, Customer: {}", Thread.currentThread().getName(), opCoId, customerInfo.getName());
                         String query = apiUtils.getPlaceApiQuery(customerInfo);
-                        LOGGER.info("[UserService] Place API query: {}, OpCo: {}", query, opCoId);
+                        LOGGER.info("[UserService] Place API query: {}, OpCo: {}", query.trim(), opCoId);
                         CustomerDetailsDTO customerDetails = generateCustomerWithGoogleWindows(query, customerInfo, opCoId);
                         customers.add(customerDetails);
                     }, taskExecutor);
@@ -86,6 +86,8 @@ public class UserService {
         List<PlaceDetails> customerDataFromGoogle = placeService.getPlaceDetails(query);
         if (customerDataFromGoogle.size() > 0) {
             PlaceDetails placeDetails = customerDataFromGoogle.get(0);
+            LOGGER.info("[UserService] Customer Found ===> Query: {} | Name: {} | Address: {}",
+                    query, placeDetails.name, placeDetails.formattedAddress);
             OpeningHours openingHours = placeDetails.openingHours != null ? placeDetails.openingHours : placeDetails.secondaryOpeningHours;
             List<WindowDTO> windows = new ArrayList<>();
             if (openingHours != null) {

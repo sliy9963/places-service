@@ -30,7 +30,7 @@ public class Constants {
         Friday("4"),
         Saturday("5");
 
-        private DayNumberOfWeek(String value) {
+        DayNumberOfWeek(String value) {
             this.value = value;
         }
 
