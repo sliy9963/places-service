@@ -20,9 +20,8 @@ public class PlaceRepositoryImpl extends SimpleMongoRepository<CustomerDetailsDA
         super(new MongoRepositoryFactory(mongoOperations).getEntityInformation(CustomerDetailsDAO.class), mongoOperations);
     }
 
-    public boolean saveCustomerPlaceDetails(CustomerDetailsDTO customerDetails) {
+    public boolean saveCustomerPlaceDetails(CustomerDetailsDTO customerDetails, String key) {
         try {
-            String key = customerDetails.getOpcoId() + "-" + customerDetails.getCustomerId();
             CustomerDetailsDAO customer = MAPPER.convertValue(customerDetails, CustomerDetailsDAO.class);
             customer.setId(key);
             save(customer);

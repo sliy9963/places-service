@@ -1,6 +1,9 @@
 package com.sysco.hackathon.aperti.controller;
 
+import com.google.maps.model.OpeningHours;
+import com.sysco.hackathon.aperti.dto.request.WindowUpdateDTO;
 import com.sysco.hackathon.aperti.dto.response.CustomerDetailsDTO;
+import com.sysco.hackathon.aperti.dto.response.WindowUpdateResponse;
 import com.sysco.hackathon.aperti.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,4 +32,10 @@ public class UserController {
         LOGGER.info("[UserController] Request received to fetch customer info for OpCo ID: {}", opCoId);
         return new ResponseEntity<>(userService.getCustomersForOpCoGiven(opCoId), HttpStatus.OK);
     }
+
+    @PostMapping(path = "/customers")
+    public ResponseEntity<WindowUpdateResponse> getPlacesByOpCoAndCustomerId(@RequestBody WindowUpdateDTO windowUpdate) {
+        return new ResponseEntity<>(userService.upsertWindowActions(windowUpdate), HttpStatus.OK);
+    }
+
 }

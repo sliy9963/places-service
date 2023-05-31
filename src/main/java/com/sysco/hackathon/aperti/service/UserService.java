@@ -3,9 +3,12 @@ package com.sysco.hackathon.aperti.service;
 
 import com.google.maps.model.OpeningHours;
 import com.google.maps.model.PlaceDetails;
+import com.sysco.hackathon.aperti.dao.CustomerDetailsDAO;
+import com.sysco.hackathon.aperti.dto.request.WindowUpdateDTO;
 import com.sysco.hackathon.aperti.dto.response.CustomerDetailsDTO;
 import com.sysco.hackathon.aperti.dto.response.WindowDTO;
 import com.sysco.hackathon.aperti.dto.response.WindowItemDTO;
+import com.sysco.hackathon.aperti.dto.response.WindowUpdateResponse;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 import com.sysco.hackathon.aperti.repository.PlaceRepository;
 import com.sysco.hackathon.aperti.repository.impl.PlaceRepositoryImpl;
@@ -121,9 +124,10 @@ public class UserService {
         } else {
             customerDetails = generateCustomerInfo(customerInfo, opCoId, getDefaultWindows());
         }
-        boolean response = placeRepository.saveCustomerPlaceDetails(customerDetails);
+        String key = apiUtils.keyGenerator(customerDetails.getOpcoId(), customerDetails.getCustomerId());
+        boolean response = placeRepository.saveCustomerPlaceDetails(customerDetails, key);
         if (response) {
-            LOGGER.info("Data saved to database....");
+            LOGGER.info("Data saved to database.... Key: {}", key);
         }
         return customerDetails;
     }
@@ -186,6 +190,25 @@ public class UserService {
             windows.add(window);
         });
         return windows;
+    }
+
+    public WindowUpdateResponse upsertWindowActions(WindowUpdateDTO windowUpdate) {
+        String key = apiUtils.keyGenerator(windowUpdate.getOpcoId(), windowUpdate.getCustomerId());
+        Optional<CustomerDetailsDAO> recordFound = placeRepository.findById(key);
+        if (recordFound.isPresent()) {
+            CustomerDetailsDAO record = recordFound.get();
+            List<WindowDTO> windows = record.getWindows();
+            WindowDTO existingWindowRecord = windows.stream().filter(x -> x.getDay().equals(windowUpdate.getDay())).findFirst().orElse(null);
+            if (existingWindowRecord != null) {
+                existingWindowRecord.setReasonCode(windowUpdate.getReasonCode());
+                record.setWindows(windows);
+                System.out.println(windows);
+                placeRepository.save(record);
+                return WindowUpdateResponse.builder().message("Data updated")
+                        .customerId(windowUpdate.getCustomerId()).opcoId(windowUpdate.getOpcoId()).build();
+            }
+        }
+        return WindowUpdateResponse.builder().message("Failed to update").build();
     }
 
 }
