@@ -213,6 +213,7 @@ public class UserService {
             WindowDTO existingWindowRecord = windows.stream().filter(x -> x.getDay().equals(windowUpdate.getDay())).findFirst().orElse(null);
             if (existingWindowRecord != null) {
                 existingWindowRecord.setReasonCode(windowUpdate.getReasonCode());
+                existingWindowRecord.setSuggestedWindow(windowUpdate.getSuggestedWindow());
                 record.setWindows(windows);
                 placeRepository.save(record);
                 return WindowUpdateResponse.builder().message("Data updated")

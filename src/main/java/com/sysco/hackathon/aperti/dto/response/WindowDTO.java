@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -17,4 +18,6 @@ public class WindowDTO {
     List<WindowItemDTO> googleBusinessHours;
     String reasonCode;
     String exception;
+    @Builder.Default
+    List<WindowItemDTO> suggestedWindow = new ArrayList<>();
 }
