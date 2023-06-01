@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.maps.GeoApiContext;
 import com.sysco.hackathon.aperti.dto.OpCoDetailsDTO;
 import com.sysco.hackathon.aperti.dto.customer.CustomerResponseDTO;
-import com.sysco.hackathon.aperti.dto.response.CustomerDetailsDTO;
+import com.sysco.hackathon.aperti.dto.response.WindowItemDTO;
 import com.sysco.hackathon.aperti.dto.sfdc.SfdcCustomerDTO;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -79,8 +79,79 @@ public class ApiUtils {
         return exceptionsList.get(getRandomNumberFromList(exceptionsList));
     }
 
-    public String generateReasonCode() {
-        return reasonCodesList.get(getRandomNumberFromList(reasonCodesList));
+    public String getDefaultReasonCode() {
+        return "no_change";
+    }
+
+    public String generateExceptionCode(WindowItemDTO window, List<WindowItemDTO> googleBusinessHours) {
+        boolean isValid = googleBusinessHours != null && googleBusinessHours.size() > 0;
+        if (isValid) {
+            boolean isAtleastOneBusinessHourExist = false;
+            for (WindowItemDTO businessHour : googleBusinessHours) {
+                if (businessHour.getFrom() != null && businessHour.getTo() != null) {
+                    isAtleastOneBusinessHourExist = true;
+                    break;
+                }
+            }
+            // Check at least one google window exist for the validation
+            isValid = isAtleastOneBusinessHourExist;
+        }
+        // check if the window exist for the calculation
+        isValid = isValid && window != null && window.getFrom() != null && window.getTo() != null;
+        if (!isValid) {
+            // Unable to perform the validation
+            return "level_4";
+        } else {
+            int[] array = new int[25];
+            for (WindowItemDTO windowItemDTO : googleBusinessHours) {
+                generateCalculationArray(windowItemDTO, array, 1);
+            }
+            generateCalculationArray(window, array, 0);
+            int total = 0;
+            boolean flag = true;
+            int diff = 0;
+            for (int i=1; i < array.length; i++) {
+                total += array[i];
+                if (array[i]==0 && array[i-1]!=0){
+                    flag = !flag;
+                } else if(flag){
+                    diff+=array[i];
+                } else {
+                    diff-=array[i];
+                }
+            }
+            if (total == 0) {
+                return "level_3";
+            } else if (total <= 2) {
+                if (diff > 0) {
+                    return "level_2";
+                } else {
+                    return "level_2";
+                }
+            } else {
+                if (diff > 0) {
+                    return "level_1";
+                } else {
+                    return "level_1";
+                }
+            }
+        }
+    }
+
+    private void generateCalculationArray(WindowItemDTO windowItemDTO, int[] array, int value) {
+        int fromHour = Math.max(0, Integer.parseInt(windowItemDTO.getFrom().split(":")[0]));
+        int fromMin = Integer.parseInt(windowItemDTO.getFrom().split(":")[1]);
+        fromHour = (fromHour == 0 && fromMin == 0) ? 24 : fromHour;
+        int toHour = Math.min(Integer.parseInt(windowItemDTO.getTo().split(":")[0]), 24);
+        int toMin = Integer.parseInt(windowItemDTO.getTo().split(":")[1]);
+        toHour = (toHour == 0 && toMin == 0) ? 24 : toHour;
+        for (int i=fromHour; i <= toHour; i++) {
+            array[i] = value;
+        }
+    }
+
+    public List<WindowItemDTO> getSuggestedWindow() {
+        return new ArrayList<>();
     }
 
     private Integer getRandomNumberFromList(List<String> list) {

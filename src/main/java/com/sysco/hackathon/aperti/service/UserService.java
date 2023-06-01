@@ -107,8 +107,39 @@ public class UserService {
         return placeDetails;
     }
 
+    private Map<String, WindowDTO> generateScheduleWindowMap(CustomerDetailsDAO customerDetailsDAO) {
+        Map<String, WindowDTO> scheduleMap = new HashMap<>();
+        // Iterate for seven days
+        for (int i=0; i<7; i++) {
+            // Should add a delivery to the day
+            boolean isDeliveryExistForDay = RANDOM.nextBoolean();
+            if (isDeliveryExistForDay) {
+                int num = RANDOM.ints(0, 20).findFirst().orElse(0);
+                WindowDTO window = WindowDTO.builder()
+                        .day(String.valueOf(i))
+                        .window(windowsList.get(num))
+                        .googleBusinessHours(null)
+                        .reasonCode(apiUtils.getDefaultReasonCode()).build();
+                updateDataFromDatabase(window, customerDetailsDAO);
+                scheduleMap.put(String.valueOf(i), window);
+            }
+        }
+        return scheduleMap;
+    }
+
+    private CustomerDetailsDAO fetchCustomerDetailDAO(String opCoId, SfdcCustomerDTO customerInfo) {
+        String customerId = customerInfo.getAccount_ID__c() != null ?
+                customerInfo.getAccount_ID__c().split("-")[1] : "N/A";
+        String key = apiUtils.keyGenerator(opCoId, customerId);
+        Optional<CustomerDetailsDAO> customerDetailsDAOOptional = placeRepository.findById(key);
+        return customerDetailsDAOOptional.orElse(null);
+    }
+
     private CustomerDetailsDTO generateCustomerWithGoogleWindows(String query, SfdcCustomerDTO customerInfo, String opCoId) {
-        CustomerDetailsDTO customerDetails;
+        CustomerDetailsDAO customerDetailsDAO = fetchCustomerDetailDAO(opCoId, customerInfo);
+        Map<String, WindowDTO> scheduledList = generateScheduleWindowMap(customerDetailsDAO);
+        CustomerDetailsDTO customerDetails = generateCustomerInfo(customerInfo, opCoId,
+                scheduledList.values().stream().toList());
         PlaceDetails placeDetails = getPlaceDetails(customerInfo.getAccount_ID__c(), query);
         if (placeDetails != null) {
             LOGGER.info("[UserService] Customer Found ===> Query: {} | Name: {} | Address: {}",
@@ -117,31 +148,54 @@ public class UserService {
             List<WindowDTO> windows;
             if (openingHours != null) {
                 OpeningHours.Period[] periods = openingHours.periods;
-                Map<String, WindowDTO> generatedWindowList = new HashMap<>();
                 for (OpeningHours.Period period : periods) {
                     WindowItemDTO googleBusinessHours = generateGoogleWindows(period);
                     String dayIdentifier = Constants.DayNumberOfWeek.valueOf(period.open.day.getName()).getValue();
-                    if (generatedWindowList.get(dayIdentifier) == null) {
+                    if (scheduledList.get(dayIdentifier) == null) {
                         WindowDTO window = generateCompleteWindow(period, googleBusinessHours, 0);
-                        generatedWindowList.put(dayIdentifier, window);
+                        updateDataFromDatabase(window, customerDetailsDAO);
+                        scheduledList.put(dayIdentifier, window);
                     } else {
-                        WindowDTO window = generatedWindowList.get(dayIdentifier);
-                        window.getGoogleBusinessHours().add(googleBusinessHours);
+                        WindowDTO window = scheduledList.get(dayIdentifier);
+                        if (window.getGoogleBusinessHours() == null) {
+                            List<WindowItemDTO> businessHours = new ArrayList<>();
+                            businessHours.add(googleBusinessHours);
+                            window.setGoogleBusinessHours(businessHours);
+                        } else {
+                            window.getGoogleBusinessHours().add(googleBusinessHours);
+                        }
+                        updateDataFromDatabase(window, customerDetailsDAO);
+                        window.setException(apiUtils.generateExceptionCode(
+                                window.getWindow(), window.getGoogleBusinessHours()));
+                        window.setSuggestedWindow(apiUtils.getSuggestedWindow());
                     }
                 }
-                windows = new ArrayList<>(generatedWindowList.values());
-            } else {
-                windows = getDefaultWindows();
             }
+            windows = new ArrayList<>(scheduledList.values());
             windows.sort(Comparator.comparingInt((WindowDTO w) -> Integer.parseInt(w.getDay())));
             List<WindowDTO> windowsUpdated = processWindows(windows);
-            customerDetails = generateCustomerInfo(customerInfo, opCoId, windowsUpdated);
-        } else {
-            customerDetails = generateCustomerInfo(customerInfo, opCoId, getDefaultWindows());
+            customerDetails.setWindows(windowsUpdated);
         }
         String key = apiUtils.keyGenerator(customerDetails.getOpcoId(), customerDetails.getCustomerId());
         placeRepository.saveCustomerPlaceDetails(customerDetails, key);
         return customerDetails;
+    }
+
+    private void updateDataFromDatabase(WindowDTO window, CustomerDetailsDAO customerDetailsDAO) {
+        String day = window.getDay();
+        if (customerDetailsDAO != null && customerDetailsDAO.getWindows() != null &&
+                customerDetailsDAO.getWindows().size() > 0) {
+            Optional<WindowDTO> optional = customerDetailsDAO.getWindows().stream()
+                    .filter(windowDTO -> windowDTO.getDay().equalsIgnoreCase(day))
+                    .findFirst();
+            if (optional.isPresent()) {
+                WindowDTO windowDTO = optional.get();
+                window.setReasonCode(apiUtils.getDefaultReasonCode());
+                if (windowDTO.getReasonCode() != null) {
+                    window.setReasonCode(windowDTO.getReasonCode());
+                }
+            }
+        }
     }
 
     private List<WindowDTO> processWindows(List<WindowDTO> windows) {
@@ -169,16 +223,13 @@ public class UserService {
 
     private WindowDTO generateCompleteWindow(OpeningHours.Period period, WindowItemDTO googleBusinessHours, int index) {
         List<WindowItemDTO> googleBusinessHourList = new ArrayList<>();
-        int num = RANDOM.ints(0, 20).findFirst().orElse(0);
         googleBusinessHourList.add(googleBusinessHours != null ?
                 googleBusinessHours : WindowItemDTO.builder().build());
         WindowDTO window = WindowDTO.builder()
-                .window(windowsList.get(num))
-                .googleBusinessHours(googleBusinessHourList)
-                .exception(apiUtils.generateExceptionLevel())
-                .reasonCode(apiUtils.generateReasonCode()).build();
+                .window(WindowItemDTO.builder().build())
+                .googleBusinessHours(googleBusinessHourList).build();
         if (googleBusinessHours == null && period == null) {
-                window.setDay(String.valueOf(index));
+            window.setDay(String.valueOf(index));
         } else {
             window.setDay(Constants.DayNumberOfWeek.valueOf(period.open.day.getName()).getValue());
         }
